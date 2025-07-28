@@ -1,46 +1,179 @@
-# Getting Started with Create React App
+# Afiagate Web App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, responsive healthcare platform web application built with React, TypeScript, and Material-UI. This web app allows patients to find and book appointments with healthcare professionals and facilities.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+### Core Functionality
+- **User Authentication**: Secure login and registration system
+- **Doctor Search**: Find healthcare professionals by specialization and location
+- **Facility Search**: Discover healthcare facilities with detailed information
+- **Appointment Booking**: Book appointments with doctors and facilities
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 
-### `npm start`
+### User Experience
+- **Modern UI/UX**: Clean, professional design inspired by modern healthcare platforms
+- **Real-time Search**: Instant search and filtering capabilities
+- **Interactive Components**: Hover effects, loading states, and smooth transitions
+- **Form Validation**: Comprehensive client-side validation with error handling
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Technical Features
+- **TypeScript**: Full type safety and better development experience
+- **Material-UI**: Consistent, accessible, and customizable components
+- **React Router**: Client-side routing with navigation
+- **Context API**: Global state management for authentication
+- **Axios**: HTTP client with interceptors for token management
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 🛠️ Tech Stack
 
-### `npm test`
+- **Frontend Framework**: React 18 with TypeScript
+- **UI Library**: Material-UI (MUI) v5
+- **Routing**: React Router DOM v6
+- **HTTP Client**: Axios
+- **Date Handling**: date-fns
+- **Build Tool**: Create React App
+- **Package Manager**: npm
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 📦 Installation
 
-### `npm run build`
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd afiagate-webapp
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. **Set up environment variables**
+   Create a `.env` file in the root directory:
+   ```env
+   REACT_APP_API_URL=http://localhost:8080
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+4. **Start the development server**
+   ```bash
+   npm start
+   ```
 
-### `npm run eject`
+The application will be available at `http://localhost:3000`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 🔧 Available Scripts
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- `npm start` - Runs the app in development mode
+- `npm run build` - Builds the app for production
+- `npm test` - Launches the test runner
+- `npm run eject` - Ejects from Create React App (one-way operation)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 📁 Project Structure
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+src/
+├── components/          # Reusable UI components
+│   ├── Layout/         # Main layout components
+│   └── UI/            # Common UI components
+├── contexts/           # React contexts for state management
+├── pages/             # Page components
+├── services/          # API services and utilities
+├── types/             # TypeScript type definitions
+└── utils/             # Utility functions
+```
 
-## Learn More
+## 🔌 API Integration
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The web app connects to the Afiagate backend API with the following endpoints:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Authentication
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/refresh` - Token refresh
+- `POST /api/v1/auth/logout` - User logout
+
+### Users
+- `GET /api/v1/users/profile` - Get user profile
+- `PUT /api/v1/users/profile` - Update user profile
+- `GET /api/v1/users` - List users (doctors)
+
+### Facilities
+- `GET /api/v1/facilities` - List facilities
+- `GET /api/v1/facilities/:id` - Get facility details
+- `POST /api/v1/facilities/:id/book` - Book facility
+
+### Appointments
+- `POST /api/v1/appointments` - Create appointment
+- `GET /api/v1/appointments` - List appointments
+- `GET /api/v1/appointments/:id` - Get appointment details
+- `PUT /api/v1/appointments/:id` - Update appointment
+- `DELETE /api/v1/appointments/:id` - Cancel appointment
+
+## 🎨 Design System
+
+The application uses a consistent design system with:
+
+- **Color Palette**: Primary blue (#1976d2) with supporting colors
+- **Typography**: Roboto font family with defined hierarchy
+- **Spacing**: Consistent 8px grid system
+- **Components**: Material-UI components with custom styling
+- **Icons**: Material Icons throughout the application
+
+## 🔐 Authentication
+
+The app implements JWT-based authentication with:
+
+- **Token Storage**: Access and refresh tokens stored in localStorage
+- **Auto-refresh**: Automatic token refresh on 401 responses
+- **Protected Routes**: Route protection based on authentication status
+- **User Context**: Global user state management
+
+## 📱 Responsive Design
+
+The application is fully responsive with:
+
+- **Mobile-first approach**: Optimized for mobile devices
+- **Breakpoints**: Material-UI breakpoint system
+- **Flexible layouts**: Grid and Flexbox layouts
+- **Touch-friendly**: Optimized for touch interactions
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Environment Variables for Production
+Set the following environment variables:
+- `REACT_APP_API_URL` - Backend API URL
+
+### Deployment Options
+- **Netlify**: Drag and drop the `build` folder
+- **Vercel**: Connect GitHub repository for automatic deployment
+- **AWS S3**: Upload build files to S3 bucket
+- **Docker**: Use Docker for containerized deployment
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the GitHub repository
+- Contact the development team
+- Check the documentation
+
+## 🔄 Backend Integration
+
+This web app is designed to work with the Afiagate backend API. Make sure the backend server is running and accessible at the configured API URL.
+
+For backend setup instructions, refer to the [Afiagate Backend Repository](https://github.com/harry-kuria/afiagate-backend).
