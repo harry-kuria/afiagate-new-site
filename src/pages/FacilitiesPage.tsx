@@ -114,7 +114,7 @@ const FacilitiesPage: React.FC = () => {
     navigate(`/facilities/${facilityId}`);
   };
 
-  const filteredFacilities = facilities.filter(facility =>
+  const filteredFacilities = (facilities || []).filter(facility =>
     facility.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     facility.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     facility.location.toLowerCase().includes(searchTerm.toLowerCase())
@@ -253,7 +253,7 @@ const FacilitiesPage: React.FC = () => {
                       </Typography>
                     </Box>
 
-                    {facility.services && facility.services.length > 0 && (
+                    {facility.services && Array.isArray(facility.services) && facility.services.length > 0 && (
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                           Services:
@@ -297,7 +297,7 @@ const FacilitiesPage: React.FC = () => {
                     )}
 
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                      {facility.specialties && facility.specialties.slice(0, 2).map((specialty, index) => (
+                      {facility.specialties && Array.isArray(facility.specialties) && facility.specialties.slice(0, 2).map((specialty, index) => (
                         <Chip
                           key={index}
                           label={specialty}

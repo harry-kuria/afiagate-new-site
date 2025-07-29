@@ -115,7 +115,7 @@ const DoctorsPage: React.FC = () => {
     navigate(`/doctors/${doctorId}`);
   };
 
-  const filteredDoctors = doctors.filter(doctor =>
+  const filteredDoctors = (doctors || []).filter(doctor =>
     doctor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
   );

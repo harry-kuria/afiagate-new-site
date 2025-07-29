@@ -331,16 +331,16 @@ const HomePage: React.FC = () => {
                   position: 'absolute',
                   right: { xs: '-10%', md: '-10%' },
                   top: '50%',
-                  transform: 'translateY(-50%) rotate(-15deg)',
+                  transform: 'translateY(-50%)',
                   width: { xs: '100%', md: '100%' },
                   height: { xs: '100%', md: '120%' },
                   background: 'rgb(25, 118, 210)',
                   borderRadius: '60% 40% 30% 50% / 60% 30% 60% 40%',
                   zIndex: 1,
-                  animation: 'rotate 20s linear infinite',
-                  '@keyframes rotate': {
-                    '0%': { transform: 'translateY(-50%) rotate(-15deg)' },
-                    '100%': { transform: 'translateY(-50%) rotate(345deg)' },
+                  animation: 'pulse 4s ease-in-out infinite',
+                  '@keyframes pulse': {
+                    '0%, 100%': { transform: 'translateY(-50%) scale(1)' },
+                    '50%': { transform: 'translateY(-50%) scale(1.05)' },
                   },
                 }}
               />
@@ -549,12 +549,10 @@ const HomePage: React.FC = () => {
                   src={doctor2Image}
                   alt="Medical Professional"
                   sx={{
-                    width: { xs: 200, sm: 300, md: 500 },
-                    height: { xs: 200, sm: 300, md: 500 },
+                    width: { xs: 200, sm: 300, md: 400 },
+                    height: { xs: 200, sm: 300, md: 400 },
                     objectFit: 'contain',
                     filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.1))',
-                    marginTop: { xs: '-30px', md: '-130px' },
-                    marginLeft: { xs: '0px', md: '-150px' },
                     animation: 'float 4s ease-in-out infinite',
                     '@keyframes float': {
                       '0%, 100%': { transform: 'translateY(0px)' },
@@ -686,12 +684,11 @@ const HomePage: React.FC = () => {
               width: { xs: 80, md: 120 },
               height: { xs: 80, md: 120 },
               background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-              transform: 'rotate(15deg)',
-              animation: 'rotate 15s linear infinite',
-              '@keyframes rotate': {
-                '0%': { transform: 'rotate(15deg)' },
-                '100%': { transform: 'rotate(375deg)' },
+              borderRadius: '50%',
+              animation: 'pulse 6s ease-in-out infinite',
+              '@keyframes pulse': {
+                '0%, 100%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(1.1)' },
               },
             }}
           />
@@ -703,12 +700,11 @@ const HomePage: React.FC = () => {
               width: { xs: 60, md: 80 },
               height: { xs: 60, md: 80 },
               background: 'rgba(255, 255, 255, 0.08)',
-              borderRadius: '40% 60% 60% 40% / 70% 30% 70% 30%',
-              transform: 'rotate(-25deg)',
-              animation: 'rotate 18s linear infinite reverse',
-              '@keyframes rotate': {
-                '0%': { transform: 'rotate(-25deg)' },
-                '100%': { transform: 'rotate(-385deg)' },
+              borderRadius: '50%',
+              animation: 'pulse 8s ease-in-out infinite reverse',
+              '@keyframes pulse': {
+                '0%, 100%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(1.15)' },
               },
             }}
           />
@@ -806,12 +802,11 @@ const HomePage: React.FC = () => {
             width: { xs: 70, md: 100 },
             height: { xs: 80, md: 120 },
             background: 'rgba(25, 118, 210, 0.04)',
-            borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%',
-            transform: 'rotate(45deg)',
-            animation: 'float 11s ease-in-out infinite',
-            '@keyframes float': {
-              '0%, 100%': { transform: 'rotate(45deg) translateY(0px)' },
-              '50%': { transform: 'rotate(45deg) translateY(-10px)' },
+            borderRadius: '50%',
+            animation: 'pulse 7s ease-in-out infinite',
+            '@keyframes pulse': {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.1)' },
             },
           }}
         />
@@ -823,12 +818,11 @@ const HomePage: React.FC = () => {
             width: { xs: 60, md: 80 },
             height: { xs: 70, md: 100 },
             background: 'rgba(25, 118, 210, 0.06)',
-            borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-            transform: 'rotate(-60deg)',
-            animation: 'float 13s ease-in-out infinite reverse',
-            '@keyframes float': {
-              '0%, 100%': { transform: 'rotate(-60deg) translateY(0px)' },
-              '50%': { transform: 'rotate(-60deg) translateY(-8px)' },
+            borderRadius: '50%',
+            animation: 'pulse 9s ease-in-out infinite reverse',
+            '@keyframes pulse': {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.15)' },
             },
           }}
         />
