@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -18,6 +18,7 @@ import {
   CircularProgress,
   Alert,
   InputAdornment,
+  Skeleton,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -30,7 +31,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Facility } from '../types';
-import apiService from '../services/api';
+import { connectApiService } from '../services/connectApi';
 
 const FacilitiesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ const FacilitiesPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalFacilities, setTotalFacilities] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const facilityTypes = [
     'Hospital',
@@ -66,30 +68,57 @@ const FacilitiesPage: React.FC = () => {
     'Kakamega',
   ];
 
+  // Preload data on component mount
   useEffect(() => {
+    // Preload facilities data immediately
     fetchFacilities();
+    
+    // Preload next page data in background
+    const preloadNextPage = setTimeout(() => {
+      if (page < totalPages) {
+        connectApiService.getFacilities({
+          page: page + 1,
+          limit: 12,
+          type: facilityType || '',
+          location: location || '',
+        }).catch(() => {}); // Silent preload
+      }
+    }, 1000);
+    
+    return () => clearTimeout(preloadNextPage);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      fetchFacilities();
+    }
   }, [page, searchTerm, facilityType, location]);
 
-  const fetchFacilities = async () => {
+  const fetchFacilities = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await apiService.getFacilities({
+      if (!isInitialLoad) {
+        setLoading(true);
+      }
+      setError(null);
+      
+      const response = await connectApiService.getFacilities({
         page,
         limit: 12,
-        type: facilityType || undefined,
-        location: location || undefined,
+        type: facilityType || '',
+        location: location || '',
       });
+      
       setFacilities(response.data);
       setTotalPages(Math.ceil(response.total / 12));
       setTotalFacilities(response.total);
-      setError(null);
+      setIsInitialLoad(false);
     } catch (err) {
       setError('Failed to fetch facilities. Please try again.');
       console.error('Error fetching facilities:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchTerm, facilityType, location, isInitialLoad]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -118,6 +147,38 @@ const FacilitiesPage: React.FC = () => {
     facility.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     facility.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     facility.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Box key={index} sx={{ flex: '1 1 350px', minWidth: 0 }}>
+          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
+                <Box sx={{ flexGrow: 1 }}>
+                  <Skeleton variant="text" width="70%" height={32} sx={{ mb: 0.5 }} />
+                  <Skeleton variant="text" width="40%" height={24} sx={{ mb: 1 }} />
+                  <Skeleton variant="text" width="30%" height={20} sx={{ mb: 1 }} />
+                </Box>
+              </Box>
+              <Skeleton variant="text" width="60%" height={20} sx={{ mb: 2 }} />
+              <Skeleton variant="text" width="80%" height={20} sx={{ mb: 2 }} />
+              <Skeleton variant="text" width="50%" height={20} sx={{ mb: 2 }} />
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                <Skeleton variant="rectangular" width={60} height={24} />
+                <Skeleton variant="rectangular" width={60} height={24} />
+              </Box>
+            </CardContent>
+            <CardActions sx={{ justifyContent: 'center', pb: 3 }}>
+              <Skeleton variant="rectangular" width="100%" height={40} />
+            </CardActions>
+          </Card>
+        </Box>
+      ))}
+    </Box>
   );
 
   return (
@@ -190,10 +251,10 @@ const FacilitiesPage: React.FC = () => {
       {/* Results Summary */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          {totalFacilities} facilities found
+          {loading ? <Skeleton width={140} /> : `${totalFacilities} facilities found`}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Page {page} of {totalPages}
+          {loading ? <Skeleton width={80} /> : `Page ${page} of ${totalPages}`}
         </Typography>
       </Box>
 
@@ -205,10 +266,8 @@ const FacilitiesPage: React.FC = () => {
       )}
 
       {/* Loading State */}
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
+      {loading && isInitialLoad ? (
+        <LoadingSkeleton />
       ) : (
         <>
           {/* Facilities Grid */}

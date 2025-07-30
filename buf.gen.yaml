@@ -1,0 +1,10 @@
+version: v1
+managed:
+  enabled: true
+plugins:
+  - name: es
+    out: src/gen
+    opt: target=ts
+  - name: connect-es
+    out: src/gen
+    opt: target=ts 

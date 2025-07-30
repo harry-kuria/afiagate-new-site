@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -19,6 +19,7 @@ import {
   CircularProgress,
   Alert,
   InputAdornment,
+  Skeleton,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -29,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../types';
-import apiService from '../services/api';
+import { connectApiService } from '../services/connectApi';
 
 const DoctorsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ const DoctorsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalDoctors, setTotalDoctors] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const specializations = [
     'Cardiology',
@@ -67,30 +69,55 @@ const DoctorsPage: React.FC = () => {
     'Kakamega',
   ];
 
+  // Preload data on component mount
   useEffect(() => {
+    // Preload doctors data immediately
     fetchDoctors();
+    
+    // Preload next page data in background
+    const preloadNextPage = setTimeout(() => {
+      if (page < totalPages) {
+        connectApiService.getDoctors({
+          page: page + 1,
+          limit: 12,
+          search: searchTerm || '',
+        }).catch(() => {}); // Silent preload
+      }
+    }, 1000);
+    
+    return () => clearTimeout(preloadNextPage);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      fetchDoctors();
+    }
   }, [page, searchTerm, specialization, location]);
 
-  const fetchDoctors = async () => {
+  const fetchDoctors = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await apiService.getDoctors({
+      if (!isInitialLoad) {
+        setLoading(true);
+      }
+      setError(null);
+      
+      const response = await connectApiService.getDoctors({
         page,
         limit: 12,
-        specialization: specialization || undefined,
-        location: location || undefined,
+        search: searchTerm || '',
       });
+      
       setDoctors(response.data);
       setTotalPages(Math.ceil(response.total / 12));
       setTotalDoctors(response.total);
-      setError(null);
+      setIsInitialLoad(false);
     } catch (err) {
       setError('Failed to fetch doctors. Please try again.');
       console.error('Error fetching doctors:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchTerm, specialization, location, isInitialLoad]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -118,6 +145,32 @@ const DoctorsPage: React.FC = () => {
   const filteredDoctors = (doctors || []).filter(doctor =>
     doctor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Box key={index} sx={{ flex: '1 1 280px', minWidth: 0 }}>
+          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ flexGrow: 1, textAlign: 'center', pb: 2 }}>
+              <Skeleton variant="circular" width={80} height={80} sx={{ mx: 'auto', mb: 2 }} />
+              <Skeleton variant="text" width="60%" height={32} sx={{ mx: 'auto', mb: 1 }} />
+              <Skeleton variant="text" width="40%" height={24} sx={{ mx: 'auto', mb: 1 }} />
+              <Skeleton variant="text" width="30%" height={20} sx={{ mx: 'auto', mb: 2 }} />
+              <Skeleton variant="text" width="50%" height={20} sx={{ mx: 'auto', mb: 2 }} />
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                <Skeleton variant="rectangular" width={60} height={24} />
+                <Skeleton variant="rectangular" width={60} height={24} />
+              </Box>
+            </CardContent>
+            <CardActions sx={{ justifyContent: 'center', pb: 3 }}>
+              <Skeleton variant="rectangular" width="100%" height={40} />
+            </CardActions>
+          </Card>
+        </Box>
+      ))}
+    </Box>
   );
 
   return (
@@ -190,10 +243,10 @@ const DoctorsPage: React.FC = () => {
       {/* Results Summary */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          {totalDoctors} doctors found
+          {loading ? <Skeleton width={120} /> : `${totalDoctors} doctors found`}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Page {page} of {totalPages}
+          {loading ? <Skeleton width={80} /> : `Page ${page} of ${totalPages}`}
         </Typography>
       </Box>
 
@@ -205,10 +258,8 @@ const DoctorsPage: React.FC = () => {
       )}
 
       {/* Loading State */}
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
+      {loading && isInitialLoad ? (
+        <LoadingSkeleton />
       ) : (
         <>
           {/* Doctors Grid */}

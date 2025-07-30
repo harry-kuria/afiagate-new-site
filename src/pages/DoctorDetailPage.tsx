@@ -26,7 +26,7 @@ import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { User, CreateAppointmentRequest } from '../types';
-import apiService from '../services/api';
+import { connectApiService } from '../services/connectApi';
 import { useAuth } from '../contexts/AuthContext';
 
 const DoctorDetailPage: React.FC = () => {
@@ -54,7 +54,7 @@ const DoctorDetailPage: React.FC = () => {
   const fetchDoctor = async () => {
     try {
       setLoading(true);
-      const doctorData = await apiService.getDoctorById(id!);
+      const doctorData = await connectApiService.getDoctorById(id!);
       setDoctor(doctorData);
       setError(null);
     } catch (err) {
@@ -74,15 +74,15 @@ const DoctorDetailPage: React.FC = () => {
     setBookingError(null);
 
     try {
-      const appointmentData: CreateAppointmentRequest = {
-        patient_id: user.id,
-        provider_id: doctor!.id,
-        appointment_date: format(appointmentDate, 'yyyy-MM-dd'),
-        appointment_time: format(appointmentTime, 'HH:mm'),
+      const appointmentData = {
+        patientId: user.id,
+        providerId: doctor!.id,
+        appointmentDate: format(appointmentDate, 'yyyy-MM-dd'),
+        appointmentTime: format(appointmentTime, 'HH:mm'),
         notes: notes || undefined,
       };
 
-      await apiService.createAppointment(appointmentData);
+      await connectApiService.createAppointment(appointmentData);
       setBookingSuccess(true);
       
       // Redirect to appointments page after a short delay
@@ -90,7 +90,7 @@ const DoctorDetailPage: React.FC = () => {
         navigate('/appointments');
       }, 2000);
     } catch (err: any) {
-      setBookingError(err.response?.data?.message || 'Failed to book appointment. Please try again.');
+      setBookingError(err.message || 'Failed to book appointment. Please try again.');
     } finally {
       setBookingLoading(false);
     }

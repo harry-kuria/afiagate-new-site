@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -7,18 +7,24 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 // Components
 import Layout from './components/Layout/Layout';
+import PerformanceMonitor from './components/PerformanceMonitor';
+
+// Pages
 import HomePage from './pages/HomePage';
-import DoctorsPage from './pages/DoctorsPage';
-import FacilitiesPage from './pages/FacilitiesPage';
-import DoctorDetailPage from './pages/DoctorDetailPage';
-import FacilityDetailPage from './pages/FacilityDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
+import DoctorsPage from './pages/DoctorsPage';
+import DoctorDetailPage from './pages/DoctorDetailPage';
+import FacilitiesPage from './pages/FacilitiesPage';
+import FacilityDetailPage from './pages/FacilityDetailPage';
 import AppointmentsPage from './pages/AppointmentsPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
+
+// Performance monitoring
+import { connectApiService } from './services/connectApi';
 
 const theme = createTheme({
   palette: {
@@ -86,7 +92,43 @@ const theme = createTheme({
   },
 });
 
+// Preload critical data for instant loading
+const preloadCriticalData = async () => {
+  try {
+    // Preload doctors data in background
+    connectApiService.getDoctors({ page: 1, limit: 12 }).catch(() => {});
+    
+    // Preload facilities data in background
+    connectApiService.getFacilities({ page: 1, limit: 12 }).catch(() => {});
+    
+    // Preload facility types
+    connectApiService.getFacilityTypes().catch(() => {});
+    
+    console.log('Critical data preloaded for instant loading');
+  } catch (error) {
+    console.log('Preload failed (non-critical):', error);
+  }
+};
+
 function App() {
+  useEffect(() => {
+    // Preload data when app starts
+    preloadCriticalData();
+    
+    // Performance monitoring
+    if ('performance' in window) {
+      // Monitor page load performance
+      window.addEventListener('load', () => {
+        const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        console.log('Page Load Performance:', {
+          domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
+          loadComplete: perfData.loadEventEnd - perfData.loadEventStart,
+          total: perfData.loadEventEnd - perfData.fetchStart,
+        });
+      });
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -96,16 +138,17 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/doctors" element={<DoctorsPage />} />
-                <Route path="/facilities" element={<FacilitiesPage />} />
-                <Route path="/doctors/:id" element={<DoctorDetailPage />} />
-                <Route path="/facilities/:id" element={<FacilityDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/doctors" element={<DoctorsPage />} />
+                <Route path="/doctors/:id" element={<DoctorDetailPage />} />
+                <Route path="/facilities" element={<FacilitiesPage />} />
+                <Route path="/facilities/:id" element={<FacilityDetailPage />} />
                 <Route path="/appointments" element={<AppointmentsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Routes>
             </Layout>
+            <PerformanceMonitor />
           </Router>
         </AuthProvider>
       </LocalizationProvider>

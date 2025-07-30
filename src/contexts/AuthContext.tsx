@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-import apiService from '../services/api';
+import { connectApiService } from '../services/connectApi';
 
 interface AuthContextType {
   user: User | null;
@@ -35,12 +35,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
-          const userProfile = await apiService.getProfile();
-          setUser(userProfile);
+          // For now, we'll need to get the user ID from the token or store it separately
+          // This is a simplified approach - in production you might decode the JWT to get user ID
+          const userId = localStorage.getItem('user_id');
+          if (userId) {
+            const userProfile = await connectApiService.getProfile(userId);
+            setUser(userProfile);
+          }
         } catch (error) {
           console.error('Failed to load user profile:', error);
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_id');
         }
       }
       setIsLoading(false);
@@ -51,9 +57,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiService.login({ email, password });
+      const response = await connectApiService.login(email, password);
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
+      localStorage.setItem('user_id', response.user.id);
       setUser(response.user);
     } catch (error) {
       throw error;
@@ -62,9 +69,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: any) => {
     try {
-      const response = await apiService.register(userData);
+      const response = await connectApiService.register(userData);
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
+      localStorage.setItem('user_id', response.user.id);
       setUser(response.user);
     } catch (error) {
       throw error;
@@ -73,19 +81,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiService.logout();
+      await connectApiService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_id');
       setUser(null);
     }
   };
 
   const updateUser = async (userData: Partial<User>) => {
     try {
-      const updatedUser = await apiService.updateProfile(userData);
+      const userId = localStorage.getItem('user_id');
+      if (!userId) throw new Error('User ID not found');
+      
+      const updatedUser = await connectApiService.updateProfile(userId, userData);
       setUser(updatedUser);
     } catch (error) {
       throw error;

@@ -1,0 +1,362 @@
+syntax = "proto3";
+
+package afiagate.v1;
+
+option go_package = "github.com/harry-kuria/afiagate-backend/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// User service
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}
+
+// Authentication service
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  
+  rpc Login(LoginRequest) returns (LoginResponse);
+  
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+// Appointment service
+service AppointmentService {
+  rpc CreateAppointment(CreateAppointmentRequest) returns (CreateAppointmentResponse);
+  
+  rpc GetAppointment(GetAppointmentRequest) returns (GetAppointmentResponse);
+  
+  rpc ListAppointments(ListAppointmentsRequest) returns (ListAppointmentsResponse);
+  
+  rpc UpdateAppointment(UpdateAppointmentRequest) returns (UpdateAppointmentResponse);
+  
+  rpc CancelAppointment(CancelAppointmentRequest) returns (CancelAppointmentResponse);
+}
+
+// Facility service
+service FacilityService {
+  rpc ListFacilities(ListFacilitiesRequest) returns (ListFacilitiesResponse);
+  
+  rpc GetFacility(GetFacilityRequest) returns (GetFacilityResponse);
+  
+  rpc GetFacilityTypes(GetFacilityTypesRequest) returns (GetFacilityTypesResponse);
+  
+  rpc BookFacility(BookFacilityRequest) returns (BookFacilityResponse);
+}
+
+// Message definitions
+message User {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+  string phone_number = 4;
+  UserRole role = 5;
+  bool is_verified = 6;
+  string location = 7;
+  string specialization = 8;
+  float rating = 9;
+  string experience = 10;
+  bool is_available = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_PATIENT = 1;
+  USER_ROLE_DOCTOR = 2;
+  USER_ROLE_NURSE = 3;
+  USER_ROLE_CAREGIVER = 4;
+  USER_ROLE_FACILITY = 5;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string full_name = 2;
+  string phone_number = 3;
+  string location = 4;
+}
+
+message UserResponse {
+  User user = 1;
+}
+
+message ListUsersRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string role = 3;
+  string search = 4;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string full_name = 3;
+  string phone_number = 4;
+  UserRole role = 5;
+  string location = 6;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
+}
+
+message Appointment {
+  string id = 1;
+  string patient_id = 2;
+  string provider_id = 3;
+  string facility_id = 4;
+  string service_id = 5;
+  string appointment_date = 6;
+  string appointment_time = 7;
+  AppointmentStatus status = 8;
+  string notes = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+enum AppointmentStatus {
+  APPOINTMENT_STATUS_UNSPECIFIED = 0;
+  APPOINTMENT_STATUS_PENDING = 1;
+  APPOINTMENT_STATUS_CONFIRMED = 2;
+  APPOINTMENT_STATUS_COMPLETED = 3;
+  APPOINTMENT_STATUS_CANCELLED = 4;
+}
+
+message CreateAppointmentRequest {
+  string patient_id = 1;
+  string provider_id = 2;
+  string facility_id = 3;
+  string service_id = 4;
+  string appointment_date = 5;
+  string appointment_time = 6;
+  string notes = 7;
+}
+
+message GetAppointmentRequest {
+  string id = 1;
+}
+
+message AppointmentResponse {
+  Appointment appointment = 1;
+}
+
+message ListAppointmentsRequest {
+  string user_id = 1;
+  string status = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message ListAppointmentsResponse {
+  repeated Appointment appointments = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message UpdateAppointmentRequest {
+  string id = 1;
+  string appointment_date = 2;
+  string appointment_time = 3;
+  string notes = 4;
+}
+
+message CancelAppointmentRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message CancelAppointmentResponse {
+  bool success = 1;
+}
+
+message Facility {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string location = 4;
+  string distance = 5;
+  float rating = 6;
+  repeated string services = 7;
+  string phone_number = 8;
+  string operating_hours = 9;
+  repeated string specialties = 10;
+  bool is_emergency = 11;
+  string description = 12;
+  repeated FacilityServiceInfo available_services = 13;
+}
+
+message FacilityServiceInfo {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string duration = 4;
+  string price = 5;
+}
+
+message ListFacilitiesRequest {
+  string type = 1;
+  string location = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message ListFacilitiesResponse {
+  repeated Facility facilities = 1;
+}
+
+message ListLocumOpportunitiesResponse {
+  repeated LocumOpportunity opportunities = 1;
+}
+
+message ListAvailableMedicsResponse {
+  repeated Medic medics = 1;
+}
+
+message GetFacilityRequest {
+  string id = 1;
+}
+
+message GetFacilityTypesRequest {
+  // Empty request for getting all facility types
+}
+
+message GetFacilityTypesResponse {
+  repeated string types = 1;
+}
+
+message FacilityResponse {
+  Facility facility = 1;
+}
+
+message BookFacilityRequest {
+  string facility_id = 1;
+  string service_id = 2;
+  string patient_name = 3;
+  string patient_phone = 4;
+  string appointment_date = 5;
+  string appointment_time = 6;
+  string notes = 7;
+}
+
+message BookingResponse {
+  string booking_id = 1;
+  string facility_name = 2;
+  string service_name = 3;
+  string appointment_date = 4;
+  string appointment_time = 5;
+  string status = 6;
+  google.protobuf.Timestamp created_at = 7;
+} 
+
+// Locum Opportunity message
+message LocumOpportunity {
+    string id = 1;
+    string title = 2;
+    string facility = 3;
+    string location = 4;
+    string duration = 5;
+    string pay_rate = 6;
+    string urgency = 7;
+    string job_type = 8;
+    repeated string requirements = 9;
+    string description = 10;
+    string posted_date = 11;
+}
+
+// Medic message
+message Medic {
+    string id = 1;
+    string full_name = 2;
+    string specialization = 3;
+    string location = 4;
+    float rating = 5;
+    bool is_verified = 6;
+    string experience = 7;
+} 
+
+message GetUserResponse {
+  User user = 1; // Assuming you want to return a User object
+}
+
+message UpdateUserResponse {
+  User user = 1; // Assuming you want to return the updated User object
+}
+
+message CreateAppointmentResponse {
+  Appointment appointment = 1; // Assuming you want to return the created Appointment object
+}
+
+message GetAppointmentResponse {
+  Appointment appointment = 1; // Assuming you want to return the Appointment object
+}
+
+message UpdateAppointmentResponse {
+  Appointment appointment = 1; // Assuming you want to return the updated Appointment object
+}
+
+message GetFacilityResponse {
+  Facility facility = 1; // Assuming you want to return the Facility object
+}
+
+message BookFacilityResponse {
+  string booking_id = 1; // Assuming you want to return the booking ID
+  string facility_name = 2; // Assuming you want to return the facility name
+  string service_name = 3; // Assuming you want to return the service name
+  string appointment_date = 4; // Assuming you want to return the appointment date
+  string appointment_time = 5; // Assuming you want to return the appointment time
+  string status = 6; // Assuming you want to return the booking status
+  google.protobuf.Timestamp created_at = 7; // Assuming you want to return the creation timestamp
+} 
