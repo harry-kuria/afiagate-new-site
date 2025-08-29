@@ -21,3 +21,28 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Deployment files
+*.tar.gz
+*.base64.txt
+deploy-package-base64.txt
+full-app-base64.txt
+full-app.tar.gz
+
+# Terraform files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# Session manager plugin
+session-manager-plugin.deb
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
