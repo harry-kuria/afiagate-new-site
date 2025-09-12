@@ -1,7 +1,7 @@
 // Simple Connect-RPC service using fetch
 // This will be replaced by proper Connect-RPC client when protobuf generation is working
 
-const API_BASE_URL = 'https://44.213.151.131/api/v1';
+const API_BASE_URL = 'https://demoafya.ddnsgeek.com/api/v1';
 
 // Cache for API responses
 const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
