@@ -8,20 +8,12 @@ import {
   CardContent,
   CardActions,
   Chip,
-  Paper,
-  Stack,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
-  LocalHospital as HospitalIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
   LocationOn as LocationIcon,
-  Favorite as HeartIcon,
-  Star as StarIcon,
   AccessTime as TimeIcon,
-  Phone as PhoneIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import doctorImage from '../assets/doctor.png';
@@ -31,9 +23,6 @@ import calendarImage from '../assets/calendar.png';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   const [isVisible, setIsVisible] = useState(false);
   const [animateCards, setAnimateCards] = useState(false);

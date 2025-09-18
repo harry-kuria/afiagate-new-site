@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Box, Alert } from '@mui/material';
+import { Container, Alert } from '@mui/material';
 
 const ProfilePage: React.FC = () => {
   return (

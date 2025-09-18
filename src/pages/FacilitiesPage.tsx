@@ -15,7 +15,6 @@ import {
   Chip,
   Rating,
   Pagination,
-  CircularProgress,
   Alert,
   InputAdornment,
   Skeleton,
@@ -24,7 +23,6 @@ import {
   Search as SearchIcon,
   LocationOn as LocationIcon,
   LocalHospital as HospitalIcon,
-  Star as StarIcon,
   Phone as PhoneIcon,
   AccessTime as TimeIcon,
   Emergency as EmergencyIcon,
@@ -68,32 +66,6 @@ const FacilitiesPage: React.FC = () => {
     'Kakamega',
   ];
 
-  // Preload data on component mount
-  useEffect(() => {
-    // Preload facilities data immediately
-    fetchFacilities();
-    
-    // Preload next page data in background
-    const preloadNextPage = setTimeout(() => {
-      if (page < totalPages) {
-        connectApiService.getFacilities({
-          page: page + 1,
-          limit: 12,
-          type: facilityType || '',
-          location: location || '',
-        }).catch(() => {}); // Silent preload
-      }
-    }, 1000);
-    
-    return () => clearTimeout(preloadNextPage);
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialLoad) {
-      fetchFacilities();
-    }
-  }, [page, searchTerm, facilityType, location]);
-
   const fetchFacilities = useCallback(async () => {
     try {
       if (!isInitialLoad) {
@@ -118,7 +90,33 @@ const FacilitiesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm, facilityType, location, isInitialLoad]);
+  }, [page, searchTerm, isInitialLoad]);
+
+  // Preload data on component mount
+  useEffect(() => {
+    // Preload facilities data immediately
+    fetchFacilities();
+    
+    // Preload next page data in background
+    const preloadNextPage = setTimeout(() => {
+      if (page < totalPages) {
+        connectApiService.getFacilities({
+          page: page + 1,
+          limit: 12,
+          type: facilityType || '',
+          location: location || '',
+        }).catch(() => {}); // Silent preload
+      }
+    }, 1000);
+    
+    return () => clearTimeout(preloadNextPage);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      fetchFacilities();
+    }
+  }, [page, searchTerm, facilityType, location, fetchFacilities, isInitialLoad]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);

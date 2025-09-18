@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -19,13 +19,12 @@ import {
   LocationOn as LocationIcon,
   Phone as PhoneIcon,
   Person as PersonIcon,
-  Star as StarIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { User, CreateAppointmentRequest } from '../types';
+import { User } from '../types';
 import { connectApiService } from '../services/connectApi';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -45,13 +44,7 @@ const DoctorDetailPage: React.FC = () => {
   const [appointmentTime, setAppointmentTime] = useState<Date | null>(null);
   const [notes, setNotes] = useState('');
 
-  useEffect(() => {
-    if (id) {
-      fetchDoctor();
-    }
-  }, [id]);
-
-  const fetchDoctor = async () => {
+  const fetchDoctor = useCallback(async () => {
     try {
       setLoading(true);
       const doctorData = await connectApiService.getDoctorById(id!);
@@ -63,7 +56,13 @@ const DoctorDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchDoctor();
+    }
+  }, [id, fetchDoctor]);
 
   const handleBookAppointment = async () => {
     if (!appointmentDate || !appointmentTime || !user) {

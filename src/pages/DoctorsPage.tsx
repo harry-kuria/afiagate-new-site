@@ -16,7 +16,6 @@ import {
   Avatar,
   Rating,
   Pagination,
-  CircularProgress,
   Alert,
   InputAdornment,
   Skeleton,
@@ -25,7 +24,6 @@ import {
   Search as SearchIcon,
   LocationOn as LocationIcon,
   Person as PersonIcon,
-  Star as StarIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -69,31 +67,6 @@ const DoctorsPage: React.FC = () => {
     'Kakamega',
   ];
 
-  // Preload data on component mount
-  useEffect(() => {
-    // Preload doctors data immediately
-    fetchDoctors();
-    
-    // Preload next page data in background
-    const preloadNextPage = setTimeout(() => {
-      if (page < totalPages) {
-        connectApiService.getDoctors({
-          page: page + 1,
-          limit: 12,
-          search: searchTerm || '',
-        }).catch(() => {}); // Silent preload
-      }
-    }, 1000);
-    
-    return () => clearTimeout(preloadNextPage);
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialLoad) {
-      fetchDoctors();
-    }
-  }, [page, searchTerm, specialization, location]);
-
   const fetchDoctors = useCallback(async () => {
     try {
       if (!isInitialLoad) {
@@ -117,7 +90,32 @@ const DoctorsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm, specialization, location, isInitialLoad]);
+  }, [page, searchTerm, isInitialLoad]);
+
+  // Preload data on component mount
+  useEffect(() => {
+    // Preload doctors data immediately
+    fetchDoctors();
+    
+    // Preload next page data in background
+    const preloadNextPage = setTimeout(() => {
+      if (page < totalPages) {
+        connectApiService.getDoctors({
+          page: page + 1,
+          limit: 12,
+          search: searchTerm || '',
+        }).catch(() => {}); // Silent preload
+      }
+    }, 1000);
+    
+    return () => clearTimeout(preloadNextPage);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      fetchDoctors();
+    }
+  }, [page, searchTerm, specialization, location, fetchDoctors, isInitialLoad]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
