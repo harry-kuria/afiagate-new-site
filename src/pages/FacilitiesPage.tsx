@@ -90,7 +90,7 @@ const FacilitiesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm, isInitialLoad]);
+  }, [page, facilityType, location, isInitialLoad]);
 
   // Preload data on component mount
   useEffect(() => {
@@ -110,7 +110,7 @@ const FacilitiesPage: React.FC = () => {
     }, 1000);
     
     return () => clearTimeout(preloadNextPage);
-  }, []);
+  }, [fetchFacilities, page, facilityType, location, totalPages]);
 
   useEffect(() => {
     if (!isInitialLoad) {

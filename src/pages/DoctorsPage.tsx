@@ -109,7 +109,7 @@ const DoctorsPage: React.FC = () => {
     }, 1000);
     
     return () => clearTimeout(preloadNextPage);
-  }, []);
+  }, [fetchDoctors, page, searchTerm, totalPages]);
 
   useEffect(() => {
     if (!isInitialLoad) {
