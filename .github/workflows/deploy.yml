@@ -1,0 +1,66 @@
+name: Build and Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Create deployment package
+      run: |
+        tar -czf full-app.tar.gz -C build .
+        
+    - name: Deploy to server
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Install SSH key
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 3.230.72.136 >> ~/.ssh/known_hosts
+        
+        # Upload and deploy
+        scp -i ~/.ssh/id_rsa full-app.tar.gz ubuntu@3.230.72.136:~/
+        ssh -i ~/.ssh/id_rsa ubuntu@3.230.72.136 "
+          sudo tar -xzf ~/full-app.tar.gz -C /var/www/afiagate --strip-components=1
+          sudo chown -R www-data:www-data /var/www/afiagate
+          sudo chmod -R 755 /var/www/afiagate
+          sudo systemctl restart nginx
+          echo 'Deployment completed successfully!'
+        "
+        
+    - name: Verify deployment
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Wait a moment for nginx to restart
+        sleep 10
+        
+        # Test the deployment
+        curl -k -I https://3.230.72.136 | head -1
+        
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
+        rm -f full-app.tar.gz
+

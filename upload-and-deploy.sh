@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Upload and Deploy Script for 54.242.178.144
+# This script will help you upload your app and deploy it
+
+echo "🚀 Upload and Deploy Script for 54.242.178.144"
+echo ""
+
+# Check if deployment package exists
+if [ ! -f "full-app.tar.gz" ]; then
+    echo "❌ Error: full-app.tar.gz not found!"
+    echo "Please make sure you have the deployment package ready."
+    exit 1
+fi
+
+echo "✅ Found deployment package: full-app.tar.gz"
+echo ""
+
+echo "📋 Deployment Instructions:"
+echo ""
+echo "1. Go to AWS Console → EC2 → Instances"
+echo "2. Find your instance with IP: 54.242.178.144"
+echo "3. Click 'Connect' → 'EC2 Instance Connect'"
+echo "4. Click 'Connect' to open browser terminal"
+echo ""
+echo "5. In the browser terminal, run these commands:"
+echo ""
+echo "   # Update system and install nginx"
+echo "   sudo apt update -y"
+echo "   sudo apt install -y nginx"
+echo ""
+echo "   # Create app directory"
+echo "   sudo mkdir -p /var/www/afiagate"
+echo "   sudo chown -R www-data:www-data /var/www/afiagate"
+echo ""
+echo "6. Upload your app files:"
+echo "   - In EC2 Instance Connect, look for 'Upload file' option"
+echo "   - Upload the 'build' folder from your local machine"
+echo "   - Or upload the 'full-app.tar.gz' file"
+echo ""
+echo "7. If you uploaded full-app.tar.gz, extract it:"
+echo "   sudo tar -xzf full-app.tar.gz -C /var/www/afiagate --strip-components=1"
+echo ""
+echo "8. Configure nginx:"
+echo "   sudo tee /etc/nginx/sites-available/afiagate << 'EOF'"
+echo "   server {"
+echo "       listen 80;"
+echo "       server_name _;"
+echo "       root /var/www/afiagate;"
+echo "       index index.html;"
+echo "       location / {"
+echo "           try_files \$uri \$uri/ /index.html;"
+echo "       }"
+echo "   }"
+echo "   EOF"
+echo ""
+echo "9. Enable the site:"
+echo "   sudo ln -sf /etc/nginx/sites-available/afiagate /etc/nginx/sites-enabled/"
+echo "   sudo rm -f /etc/nginx/sites-enabled/default"
+echo "   sudo nginx -t"
+echo "   sudo systemctl restart nginx"
+echo ""
+echo "10. Check if it's working:"
+echo "    curl -I http://54.242.178.144"
+echo ""
+echo "🌐 Your app will be available at: http://54.242.178.144"
+echo ""
+echo "💡 Alternative: Use the browser-deploy.sh script for automated deployment"

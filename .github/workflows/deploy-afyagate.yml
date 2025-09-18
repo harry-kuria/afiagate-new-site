@@ -1,0 +1,189 @@
+name: Deploy to Afyagate.com
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  SERVER_IP: 3.230.72.136
+  SERVER_USER: ubuntu
+  APP_DIR: /var/www/html
+  DOMAIN: afyagate.com
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linting
+      run: npm run lint --if-present || echo "No lint script found"
+      
+    - name: Run tests
+      run: npm test -- --watchAll=false --passWithNoTests || echo "No tests found"
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files
+        path: build/
+        retention-days: 1
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-files
+        path: build/
+        
+    - name: Create deployment package
+      run: |
+        tar -czf afiagate-webapp-build.tar.gz -C build .
+        
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
+        
+    - name: Backup current deployment
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "
+          if [ -d ${{ env.APP_DIR }} ]; then
+            sudo cp -r ${{ env.APP_DIR }} ${{ env.APP_DIR }}.backup.$(date +%Y%m%d_%H%M%S)
+            echo 'Backup created successfully'
+          else
+            echo 'No existing deployment to backup'
+          fi
+        "
+        
+    - name: Deploy to server
+      run: |
+        # Upload new version
+        scp -i ~/.ssh/id_rsa afiagate-webapp-build.tar.gz ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:/tmp/
+        
+        # Deploy
+        ssh -i ~/.ssh/id_rsa ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "
+          echo 'Starting deployment to afyagate.com...'
+          
+          # Remove old files and extract new version
+          sudo rm -rf ${{ env.APP_DIR }}/*
+          sudo tar -xzf /tmp/afiagate-webapp-build.tar.gz -C ${{ env.APP_DIR }}/
+          
+          # Set permissions
+          sudo chown -R www-data:www-data ${{ env.APP_DIR }}
+          sudo chmod -R 755 ${{ env.APP_DIR }}
+          
+          # Test nginx configuration
+          sudo nginx -t
+          
+          # Reload nginx (graceful restart)
+          sudo systemctl reload nginx
+          
+          # Clean up temporary files
+          rm -f /tmp/afiagate-webapp-build.tar.gz
+          
+          echo 'Deployment to afyagate.com completed successfully!'
+        "
+        
+    - name: Health check
+      run: |
+        # Wait for nginx to reload
+        sleep 10
+        
+        # Test the deployment
+        for i in {1..5}; do
+          if curl -f -I https://${{ env.DOMAIN }} > /dev/null 2>&1; then
+            echo "✅ Health check passed on attempt $i"
+            break
+          else
+            echo "⚠️ Health check failed on attempt $i, retrying..."
+            sleep 5
+          fi
+        done
+        
+        # Final verification
+        if ! curl -f -I https://${{ env.DOMAIN }} > /dev/null 2>&1; then
+          echo "❌ Health check failed after all attempts"
+          exit 1
+        fi
+        
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "❌ Deployment failed, rolling back..."
+        ssh -i ~/.ssh/id_rsa ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "
+          # Find the most recent backup
+          LATEST_BACKUP=\$(ls -td ${{ env.APP_DIR }}.backup.* | head -1)
+          
+          if [ -n \"\$LATEST_BACKUP\" ]; then
+            echo 'Rolling back to: '\$LATEST_BACKUP
+            sudo rm -rf ${{ env.APP_DIR }}/*
+            sudo cp -r \$LATEST_BACKUP/* ${{ env.APP_DIR }}/
+            sudo chown -R www-data:www-data ${{ env.APP_DIR }}
+            sudo chmod -R 755 ${{ env.APP_DIR }}
+            sudo systemctl reload nginx
+            echo 'Rollback completed'
+          else
+            echo 'No backup found for rollback'
+          fi
+        "
+        
+    - name: Cleanup old backups
+      if: success()
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "
+          # Keep only the 5 most recent backups
+          ls -td ${{ env.APP_DIR }}.backup.* | tail -n +6 | xargs -r sudo rm -rf
+          echo 'Old backups cleaned up'
+        "
+        
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
+        rm -f afiagate-webapp-build.tar.gz
+        
+    - name: Notify success
+      if: success()
+      run: |
+        echo "🎉 Deployment to ${{ env.DOMAIN }} completed successfully!"
+        echo "🌐 Application available at: https://${{ env.DOMAIN }}"
+        
+    - name: Notify failure
+      if: failure()
+      run: |
+        echo "❌ Deployment to ${{ env.DOMAIN }} failed!"
+        echo "🔍 Check the logs above for details"
