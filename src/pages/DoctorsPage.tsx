@@ -141,8 +141,8 @@ const DoctorsPage: React.FC = () => {
   };
 
   const filteredDoctors = (doctors || []).filter(doctor =>
-    doctor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
+    doctor.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (doctor.specialization && doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Loading skeleton component
