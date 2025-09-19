@@ -11,7 +11,7 @@ import {
   PaginatedResponse
 } from '../types';
 
-const API_BASE_URL = 'https://demoafya.ddnsgeek.com/api/v1';
+const API_BASE_URL = 'https://api.afyagate.com/api/v1';
 
 class ApiService {
   private api: AxiosInstance;
