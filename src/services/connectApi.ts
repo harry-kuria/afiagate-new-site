@@ -143,7 +143,7 @@ function transformUser(connectUser: any) {
     email: connectUser.email,
     full_name: connectUser.fullName,
     phone_number: connectUser.phoneNumber,
-    role: connectUser.role.toLowerCase(),
+    role: connectUser.role?.toLowerCase() || 'user',
     is_verified: connectUser.isVerified,
     location: connectUser.location,
     specialization: connectUser.specialization,
@@ -187,7 +187,7 @@ function transformAppointment(connectAppointment: any) {
     appointment_date: connectAppointment.appointmentDate,
     appointment_time: connectAppointment.appointmentTime,
     notes: connectAppointment.notes,
-    status: connectAppointment.status.toLowerCase(),
+    status: connectAppointment.status?.toLowerCase() || 'pending',
     created_at: connectAppointment.createdAt,
     updated_at: connectAppointment.updatedAt,
   };

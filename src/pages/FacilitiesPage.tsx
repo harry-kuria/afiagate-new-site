@@ -142,9 +142,9 @@ const FacilitiesPage: React.FC = () => {
   };
 
   const filteredFacilities = (facilities || []).filter(facility =>
-    facility.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    facility.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    facility.location.toLowerCase().includes(searchTerm.toLowerCase())
+    facility.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    facility.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    facility.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Loading skeleton component
