@@ -60,22 +60,22 @@ async function makeConnectRequest<T>(
           const refreshToken = localStorage.getItem('refresh_token');
           if (refreshToken) {
             try {
-              const refreshResponse = await fetch(`${API_BASE_URL}/afiagate.v1.AuthService/RefreshToken`, {
+              const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Connect-Protocol-Version': '1',
                 },
-                body: JSON.stringify({ refreshToken }),
+                body: JSON.stringify({ refresh_token: refreshToken }),
               });
               
               if (refreshResponse.ok) {
                 const refreshData = await refreshResponse.json();
-                localStorage.setItem('access_token', refreshData.accessToken);
-                localStorage.setItem('refresh_token', refreshData.refreshToken);
+                localStorage.setItem('access_token', refreshData.access_token);
+                localStorage.setItem('refresh_token', refreshData.refresh_token);
                 
                 // Retry original request with new token
-                headers['Authorization'] = `Bearer ${refreshData.accessToken}`;
+                headers['Authorization'] = `Bearer ${refreshData.access_token}`;
                 const retryResponse = await fetch(url, {
                   method,
                   headers,
@@ -244,14 +244,14 @@ class ConnectApiService {
   // Auth endpoints
   async login(email: string, password: string) {
     const response = await makeConnectRequest<{
-      accessToken: string;
-      refreshToken: string;
+      access_token: string;
+      refresh_token: string;
       user: User;
-    }>('/afiagate.v1.AuthService/Login', 'POST', { email, password }, false);
+    }>('/auth/login', 'POST', { email, password }, false);
     
     return {
-      access_token: response.accessToken,
-      refresh_token: response.refreshToken,
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
       user: transformUser(response.user)
     };
   }
@@ -265,28 +265,28 @@ class ConnectApiService {
     location?: string;
   }) {
     const response = await makeConnectRequest<{
-      accessToken: string;
-      refreshToken: string;
+      access_token: string;
+      refresh_token: string;
       user: User;
-    }>('/afiagate.v1.AuthService/Register', 'POST', userData, false);
+    }>('/auth/register', 'POST', userData, false);
     
     return {
-      access_token: response.accessToken,
-      refresh_token: response.refreshToken,
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
       user: transformUser(response.user)
     };
   }
 
   async refreshToken(refreshToken: string) {
     const response = await makeConnectRequest<{
-      accessToken: string;
-      refreshToken: string;
+      access_token: string;
+      refresh_token: string;
       user: User;
-    }>('/afiagate.v1.AuthService/RefreshToken', 'POST', { refreshToken }, false);
+    }>('/auth/refresh', 'POST', { refresh_token: refreshToken }, false);
     
     return {
-      access_token: response.accessToken,
-      refresh_token: response.refreshToken,
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
       user: transformUser(response.user)
     };
   }
@@ -294,14 +294,14 @@ class ConnectApiService {
   async logout() {
     const refreshToken = localStorage.getItem('refresh_token');
     if (refreshToken) {
-      await makeConnectRequest('/afiagate.v1.AuthService/Logout', 'POST', { refreshToken }, false);
+      await makeConnectRequest('/auth/logout', 'POST', { refresh_token: refreshToken }, false);
     }
   }
 
   // User endpoints
   async getProfile(userId: string) {
-    const response = await makeConnectRequest<{ user: User }>('/afiagate.v1.UserService/GetUser', 'POST', { id: userId });
-    return transformUser(response.user);
+    const response = await makeConnectRequest<User>(`/users/${userId}`, 'GET');
+    return transformUser(response);
   }
 
   async updateProfile(userId: string, userData: {
@@ -309,11 +309,8 @@ class ConnectApiService {
     phoneNumber?: string;
     location?: string;
   }) {
-    const response = await makeConnectRequest<{ user: User }>('/afiagate.v1.UserService/UpdateUser', 'POST', {
-      id: userId,
-      ...userData
-    }, false);
-    return transformUser(response.user);
+    const response = await makeConnectRequest<User>(`/users/${userId}`, 'PUT', userData, false);
+    return transformUser(response);
   }
 
   async getDoctors(params?: {
@@ -321,20 +318,22 @@ class ConnectApiService {
     limit?: number;
     search?: string;
   }) {
+    const queryParams = new URLSearchParams({
+      role: 'doctor',
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString(),
+      search: params?.search || ''
+    });
+    
     const response = await makeConnectRequest<{
-      users: User[];
+      data: User[];
       total: number;
       page: number;
       limit: number;
-    }>('/afiagate.v1.UserService/ListUsers', 'POST', {
-      role: 'doctor',
-      page: params?.page || 1,
-      limit: params?.limit || 10,
-      search: params?.search || ''
-    }, true, 60000); // Cache for 1 minute
+    }>(`/users?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.users.map(transformUser),
+      data: response.data.map(transformUser),
       total: response.total,
       page: response.page,
       limit: response.limit
@@ -342,8 +341,8 @@ class ConnectApiService {
   }
 
   async getDoctorById(id: string) {
-    const response = await makeConnectRequest<{ user: User }>('/afiagate.v1.UserService/GetUser', 'POST', { id }, true, 300000); // Cache for 5 minutes
-    return transformUser(response.user);
+    const response = await makeConnectRequest<User>(`/users/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    return transformUser(response);
   }
 
   // Facility endpoints
@@ -353,29 +352,46 @@ class ConnectApiService {
     type?: string;
     location?: string;
   }) {
-    const response = await makeConnectRequest<{ facilities: Facility[] }>('/afiagate.v1.FacilityService/ListFacilities', 'POST', {
-      page: params?.page || 1,
-      limit: params?.limit || 10,
+    const queryParams = new URLSearchParams({
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString(),
       type: params?.type || '',
       location: params?.location || ''
-    }, true, 60000); // Cache for 1 minute
+    });
+    
+    const response = await makeConnectRequest<{
+      data: Facility[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/facilities?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.facilities.map(transformFacility),
-      total: 0, // Not returned by current API
-      page: params?.page || 1,
-      limit: params?.limit || 10
+      data: response.data.map(transformFacility),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
     };
   }
 
   async getFacilityById(id: string) {
-    const response = await makeConnectRequest<{ facility: Facility }>('/afiagate.v1.FacilityService/GetFacility', 'POST', { id }, true, 300000); // Cache for 5 minutes
-    return transformFacility(response.facility);
+    const response = await makeConnectRequest<Facility>(`/facilities/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    return transformFacility(response);
   }
 
   async getFacilityTypes() {
-    const response = await makeConnectRequest<{ types: string[] }>('/afiagate.v1.FacilityService/GetFacilityTypes', 'POST', {}, true, 300000); // Cache for 5 minutes
-    return response.types;
+    // For now, return a static list since the API doesn't have a specific endpoint
+    // This could be enhanced to fetch from a dedicated endpoint if available
+    return [
+      'Hospital',
+      'Clinic', 
+      'Medical Center',
+      'Laboratory',
+      'Pharmacy',
+      'Dental Clinic',
+      'Eye Clinic',
+      'Specialty Center'
+    ];
   }
 
   async bookFacility(bookingData: {
@@ -401,8 +417,8 @@ class ConnectApiService {
     appointmentTime: string;
     notes?: string;
   }) {
-    const response = await makeConnectRequest<{ appointment: Appointment }>('/afiagate.v1.AppointmentService/CreateAppointment', 'POST', appointmentData, false);
-    return transformAppointment(response.appointment);
+    const response = await makeConnectRequest<Appointment>('/appointments', 'POST', appointmentData, false);
+    return transformAppointment(response);
   }
 
   async getAppointments(params?: {
@@ -411,20 +427,22 @@ class ConnectApiService {
     page?: number;
     limit?: number;
   }) {
+    const queryParams = new URLSearchParams({
+      userId: params?.userId || '',
+      status: params?.status || '',
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
     const response = await makeConnectRequest<{
-      appointments: Appointment[];
+      data: Appointment[];
       total: number;
       page: number;
       limit: number;
-    }>('/afiagate.v1.AppointmentService/ListAppointments', 'POST', {
-      userId: params?.userId || '',
-      status: params?.status || '',
-      page: params?.page || 1,
-      limit: params?.limit || 10
-    }, true, 30000); // Cache for 30 seconds
+    }>(`/appointments?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
     
     return {
-      data: response.appointments.map(transformAppointment),
+      data: response.data.map(transformAppointment),
       total: response.total,
       page: response.page,
       limit: response.limit
@@ -432,8 +450,8 @@ class ConnectApiService {
   }
 
   async getAppointmentById(id: string) {
-    const response = await makeConnectRequest<{ appointment: Appointment }>('/afiagate.v1.AppointmentService/GetAppointment', 'POST', { id }, true, 300000); // Cache for 5 minutes
-    return transformAppointment(response.appointment);
+    const response = await makeConnectRequest<Appointment>(`/appointments/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    return transformAppointment(response);
   }
 
   async updateAppointment(id: string, appointmentData: {
@@ -441,16 +459,12 @@ class ConnectApiService {
     appointmentTime?: string;
     notes?: string;
   }) {
-    const response = await makeConnectRequest<{ appointment: Appointment }>('/afiagate.v1.AppointmentService/UpdateAppointment', 'POST', {
-      id,
-      ...appointmentData
-    }, false);
-    return transformAppointment(response.appointment);
+    const response = await makeConnectRequest<Appointment>(`/appointments/${id}`, 'PUT', appointmentData, false);
+    return transformAppointment(response);
   }
 
   async cancelAppointment(id: string, reason?: string) {
-    const response = await makeConnectRequest<{ success: boolean }>('/afiagate.v1.AppointmentService/CancelAppointment', 'POST', {
-      id,
+    const response = await makeConnectRequest<{ success: boolean }>(`/appointments/${id}/cancel`, 'POST', {
       reason: reason || ''
     }, false);
     return response.success;
