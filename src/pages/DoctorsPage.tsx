@@ -287,18 +287,18 @@ const DoctorsPage: React.FC = () => {
                         fontSize: '2rem',
                       }}
                     >
-                      {doctor.full_name.charAt(0)}
+                      {doctor.full_name?.charAt(0) || 'D'}
                     </Avatar>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                      Dr. {doctor.full_name}
+                      Dr. {doctor.full_name || 'Unknown Doctor'}
                     </Typography>
                     <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
-                      {doctor.specialization}
+                      {doctor.specialization || 'General Medicine'}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-                      <Rating value={doctor.rating} readOnly size="small" />
+                      <Rating value={doctor.rating || 0} readOnly size="small" />
                       <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
-                        ({doctor.rating})
+                        ({doctor.rating || 0})
                       </Typography>
                     </Box>
                     {doctor.location && (
