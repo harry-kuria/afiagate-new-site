@@ -132,19 +132,19 @@ const DoctorDetailPage: React.FC = () => {
                     fontSize: '2.5rem',
                   }}
                 >
-                  {doctor.full_name.charAt(0)}
+                  {doctor.full_name?.charAt(0) || 'D'}
                 </Avatar>
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                    Dr. {doctor.full_name}
+                    Dr. {doctor.full_name || 'Unknown Doctor'}
                   </Typography>
                   <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
-                    {doctor.specialization}
+                    {doctor.specialization || 'General Medicine'}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Rating value={doctor.rating} readOnly size="large" />
+                    <Rating value={doctor.rating || 0} readOnly size="large" />
                     <Typography variant="body1" sx={{ ml: 1, fontWeight: 600 }}>
-                      {doctor.rating}/5
+                      {doctor.rating || 0}/5
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
