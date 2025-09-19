@@ -12,7 +12,7 @@ const pendingRequests = new Map<string, Promise<any>>();
 // Helper function to make Connect-RPC requests with caching
 async function makeConnectRequest<T>(
   path: string, 
-  method: 'GET' | 'POST' = 'POST', 
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'POST', 
   body?: any,
   useCache: boolean = true,
   cacheTTL: number = 30000 // 30 seconds default
