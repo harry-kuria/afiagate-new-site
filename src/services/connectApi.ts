@@ -141,17 +141,17 @@ function transformUser(connectUser: any) {
   return {
     id: connectUser.id,
     email: connectUser.email,
-    full_name: connectUser.fullName,
-    phone_number: connectUser.phoneNumber,
+    full_name: connectUser.full_name,
+    phone_number: connectUser.phone_number,
     role: connectUser.role?.toLowerCase() || 'user',
-    is_verified: connectUser.isVerified,
+    is_verified: connectUser.is_verified,
     location: connectUser.location,
     specialization: connectUser.specialization,
     experience: connectUser.experience,
     rating: connectUser.rating,
-    is_available: connectUser.isAvailable,
-    created_at: connectUser.createdAt,
-    updated_at: connectUser.updatedAt,
+    is_available: connectUser.is_available,
+    created_at: connectUser.created_at,
+    updated_at: connectUser.updated_at,
   };
 }
 
@@ -165,14 +165,14 @@ function transformFacility(connectFacility: any) {
     distance: connectFacility.distance,
     rating: connectFacility.rating,
     services: connectFacility.services,
-    phone_number: connectFacility.phoneNumber,
-    operating_hours: connectFacility.operatingHours,
+    phone_number: connectFacility.phone_number || connectFacility.phoneNumber,
+    operating_hours: connectFacility.operating_hours || connectFacility.operatingHours,
     specialties: connectFacility.specialties,
-    is_emergency: connectFacility.isEmergency,
+    is_emergency: connectFacility.is_emergency || connectFacility.isEmergency,
     description: connectFacility.description,
-    created_at: connectFacility.createdAt,
-    updated_at: connectFacility.updatedAt,
-    available_services: connectFacility.availableServices || [],
+    created_at: connectFacility.created_at || connectFacility.createdAt,
+    updated_at: connectFacility.updated_at || connectFacility.updatedAt,
+    available_services: connectFacility.available_services || connectFacility.availableServices || [],
   };
 }
 
@@ -180,16 +180,16 @@ function transformFacility(connectFacility: any) {
 function transformAppointment(connectAppointment: any) {
   return {
     id: connectAppointment.id,
-    patient_id: connectAppointment.patientId,
-    provider_id: connectAppointment.providerId,
-    facility_id: connectAppointment.facilityId,
-    service_id: connectAppointment.serviceId,
-    appointment_date: connectAppointment.appointmentDate,
-    appointment_time: connectAppointment.appointmentTime,
+    patient_id: connectAppointment.patient_id || connectAppointment.patientId,
+    provider_id: connectAppointment.provider_id || connectAppointment.providerId,
+    facility_id: connectAppointment.facility_id || connectAppointment.facilityId,
+    service_id: connectAppointment.service_id || connectAppointment.serviceId,
+    appointment_date: connectAppointment.appointment_date || connectAppointment.appointmentDate,
+    appointment_time: connectAppointment.appointment_time || connectAppointment.appointmentTime,
     notes: connectAppointment.notes,
     status: connectAppointment.status?.toLowerCase() || 'pending',
-    created_at: connectAppointment.createdAt,
-    updated_at: connectAppointment.updatedAt,
+    created_at: connectAppointment.created_at || connectAppointment.createdAt,
+    updated_at: connectAppointment.updated_at || connectAppointment.updatedAt,
   };
 }
 
