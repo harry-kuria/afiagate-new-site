@@ -469,6 +469,212 @@ class ConnectApiService {
     }, false);
     return response.success;
   }
+
+  // Review endpoints
+  async getReviews(providerId: string, params?: {
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      provider_id: providerId,
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/reviews?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
+    
+    return {
+      data: response.data.map(transformReview),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+
+  async createReview(reviewData: {
+    provider_id: string;
+    rating: number;
+    comment: string;
+  }) {
+    const response = await makeConnectRequest<any>('/reviews', 'POST', reviewData, false);
+    return transformReview(response);
+  }
+
+  // Education endpoints
+  async getEducation(userId: string, params?: {
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      user_id: userId,
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/education?${queryParams}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    
+    return {
+      data: response.data.map(transformEducation),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+
+  async createEducation(educationData: {
+    institution: string;
+    degree: string;
+    field_of_study: string;
+    graduation_year: number;
+    gpa?: number;
+  }) {
+    const response = await makeConnectRequest<any>('/education', 'POST', educationData, false);
+    return transformEducation(response);
+  }
+
+  // Licensure endpoints
+  async getLicensure(userId: string, params?: {
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      user_id: userId,
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/licensure?${queryParams}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    
+    return {
+      data: response.data.map(transformLicensure),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+
+  async createLicensure(licensureData: {
+    license_number: string;
+    issuing_authority: string;
+    license_type: string;
+    issue_date: string;
+    expiry_date: string;
+  }) {
+    const response = await makeConnectRequest<any>('/licensure', 'POST', licensureData, false);
+    return transformLicensure(response);
+  }
+
+  // Contact request endpoints
+  async createContactRequest(contactData: {
+    provider_id: string;
+    message: string;
+    contact_method: 'phone' | 'email' | 'appointment';
+  }) {
+    const response = await makeConnectRequest<any>('/contact-requests', 'POST', contactData, false);
+    return transformContactRequest(response);
+  }
+
+  async getContactRequests(params?: {
+    provider_id?: string;
+    requester_id?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      provider_id: params?.provider_id || '',
+      requester_id: params?.requester_id || '',
+      status: params?.status || '',
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/contact-requests?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
+    
+    return {
+      data: response.data.map(transformContactRequest),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+}
+
+// Transform functions for new data types
+function transformReview(connectReview: any) {
+  return {
+    id: connectReview.id,
+    user_id: connectReview.user_id,
+    provider_id: connectReview.provider_id,
+    rating: connectReview.rating,
+    comment: connectReview.comment,
+    created_at: connectReview.created_at,
+    updated_at: connectReview.updated_at,
+    user: connectReview.user ? transformUser(connectReview.user) : undefined,
+  };
+}
+
+function transformEducation(connectEducation: any) {
+  return {
+    id: connectEducation.id,
+    user_id: connectEducation.user_id,
+    institution: connectEducation.institution,
+    degree: connectEducation.degree,
+    field_of_study: connectEducation.field_of_study,
+    graduation_year: connectEducation.graduation_year,
+    gpa: connectEducation.gpa,
+    created_at: connectEducation.created_at,
+    updated_at: connectEducation.updated_at,
+  };
+}
+
+function transformLicensure(connectLicensure: any) {
+  return {
+    id: connectLicensure.id,
+    user_id: connectLicensure.user_id,
+    license_number: connectLicensure.license_number,
+    issuing_authority: connectLicensure.issuing_authority,
+    license_type: connectLicensure.license_type,
+    issue_date: connectLicensure.issue_date,
+    expiry_date: connectLicensure.expiry_date,
+    is_active: connectLicensure.is_active,
+    created_at: connectLicensure.created_at,
+    updated_at: connectLicensure.updated_at,
+  };
+}
+
+function transformContactRequest(connectContactRequest: any) {
+  return {
+    id: connectContactRequest.id,
+    requester_id: connectContactRequest.requester_id,
+    provider_id: connectContactRequest.provider_id,
+    message: connectContactRequest.message,
+    contact_method: connectContactRequest.contact_method,
+    status: connectContactRequest.status,
+    created_at: connectContactRequest.created_at,
+    updated_at: connectContactRequest.updated_at,
+    requester: connectContactRequest.requester ? transformUser(connectContactRequest.requester) : undefined,
+  };
 }
 
 export const connectApiService = new ConnectApiService();
