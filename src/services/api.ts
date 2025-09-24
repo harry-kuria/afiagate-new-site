@@ -11,7 +11,7 @@ import {
   PaginatedResponse
 } from '../types';
 
-const API_BASE_URL = 'https://demoafya.ddnsgeek.com/api/v1';
+const API_BASE_URL = 'https://api.afyagate.com/api/v1';
 
 class ApiService {
   private api: AxiosInstance;
@@ -87,12 +87,12 @@ class ApiService {
 
   // User endpoints
   async getProfile(): Promise<User> {
-    const response: AxiosResponse<User> = await this.api.get('/api/v1/users/profile');
+    const response: AxiosResponse<User> = await this.api.get('/users/profile');
     return response.data;
   }
 
   async updateProfile(userData: Partial<User>): Promise<User> {
-    const response: AxiosResponse<User> = await this.api.put('/api/v1/users/profile', userData);
+    const response: AxiosResponse<User> = await this.api.put('/users/profile', userData);
     return response.data;
   }
 
@@ -108,49 +108,49 @@ class ApiService {
   }
 
   async getDoctorById(id: string): Promise<User> {
-    const response: AxiosResponse<User> = await this.api.get(`/api/v1/users/${id}`);
+    const response: AxiosResponse<User> = await this.api.get(`/users/${id}`);
     return response.data;
   }
 
   // Facility endpoints
   async getFacilities(params?: { page?: number; limit?: number; type?: string; location?: string }): Promise<PaginatedResponse<Facility>> {
-    const response: AxiosResponse<PaginatedResponse<Facility>> = await this.api.get('/api/v1/facilities', { params });
+    const response: AxiosResponse<PaginatedResponse<Facility>> = await this.api.get('/facilities', { params });
     return response.data;
   }
 
   async getFacilityById(id: string): Promise<Facility> {
-    const response: AxiosResponse<Facility> = await this.api.get(`/api/v1/facilities/${id}`);
+    const response: AxiosResponse<Facility> = await this.api.get(`/facilities/${id}`);
     return response.data;
   }
 
   async bookFacility(bookingData: any): Promise<any> {
-    const response: AxiosResponse<any> = await this.api.post(`/api/v1/facilities/${bookingData.facility_id}/book`, bookingData);
+    const response: AxiosResponse<any> = await this.api.post(`/facilities/${bookingData.facility_id}/book`, bookingData);
     return response.data;
   }
 
   // Appointment endpoints
   async createAppointment(appointmentData: CreateAppointmentRequest): Promise<Appointment> {
-    const response: AxiosResponse<Appointment> = await this.api.post('/api/v1/appointments', appointmentData);
+    const response: AxiosResponse<Appointment> = await this.api.post('/appointments', appointmentData);
     return response.data;
   }
 
   async getAppointments(params?: { page?: number; limit?: number; status?: string }): Promise<PaginatedResponse<Appointment>> {
-    const response: AxiosResponse<PaginatedResponse<Appointment>> = await this.api.get('/api/v1/appointments', { params });
+    const response: AxiosResponse<PaginatedResponse<Appointment>> = await this.api.get('/appointments', { params });
     return response.data;
   }
 
   async getAppointmentById(id: string): Promise<Appointment> {
-    const response: AxiosResponse<Appointment> = await this.api.get(`/api/v1/appointments/${id}`);
+    const response: AxiosResponse<Appointment> = await this.api.get(`/appointments/${id}`);
     return response.data;
   }
 
   async updateAppointment(id: string, appointmentData: Partial<Appointment>): Promise<Appointment> {
-    const response: AxiosResponse<Appointment> = await this.api.put(`/api/v1/appointments/${id}`, appointmentData);
+    const response: AxiosResponse<Appointment> = await this.api.put(`/appointments/${id}`, appointmentData);
     return response.data;
   }
 
   async cancelAppointment(id: string): Promise<void> {
-    await this.api.delete(`/api/v1/appointments/${id}`);
+    await this.api.delete(`/appointments/${id}`);
   }
 
   // Health check

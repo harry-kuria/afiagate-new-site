@@ -106,4 +106,52 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface Review {
+  id: string;
+  user_id: string;
+  provider_id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+}
+
+export interface Education {
+  id: string;
+  user_id: string;
+  institution: string;
+  degree: string;
+  field_of_study: string;
+  graduation_year: number;
+  gpa?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Licensure {
+  id: string;
+  user_id: string;
+  license_number: string;
+  issuing_authority: string;
+  license_type: string;
+  issue_date: string;
+  expiry_date: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContactRequest {
+  id: string;
+  requester_id: string;
+  provider_id: string;
+  message: string;
+  contact_method: 'phone' | 'email' | 'appointment';
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+  updated_at: string;
+  requester?: User;
 } 

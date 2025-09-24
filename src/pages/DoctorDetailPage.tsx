@@ -1,58 +1,108 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
-  Typography,
-  Box,
   Card,
   CardContent,
+  Typography,
   Avatar,
+  Box,
+  Chip,
   Rating,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   TextField,
-  Paper,
-  Chip,
-  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
   Alert,
-  Divider,
+  CircularProgress,
+  Paper,
+  Stack,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
-  LocationOn as LocationIcon,
-  Phone as PhoneIcon,
-  Person as PersonIcon,
-  Schedule as ScheduleIcon,
+  School,
+  LocalHospital,
+  Phone,
+  Email,
+  CalendarToday,
+  LocationOn,
+  Work,
+  Person,
+  Message,
+  CheckCircle,
+  Schedule,
 } from '@mui/icons-material';
-import { DatePicker, TimePicker } from '@mui/x-date-pickers';
-import { useParams, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { User } from '../types';
+import { useParams } from 'react-router-dom';
 import { connectApiService } from '../services/connectApi';
-import { useAuth } from '../contexts/AuthContext';
+import { User, Review, Education, Licensure } from '../types';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`doctor-tabpanel-${index}`}
+      aria-labelledby={`doctor-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 const DoctorDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [doctor, setDoctor] = useState<User | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [licensure, setLicensure] = useState<Licensure[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bookingLoading, setBookingLoading] = useState(false);
-  const [bookingError, setBookingError] = useState<string | null>(null);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactMethod, setContactMethod] = useState<'phone' | 'email' | 'appointment'>('appointment');
 
-  // Booking form state
-  const [appointmentDate, setAppointmentDate] = useState<Date | null>(null);
-  const [appointmentTime, setAppointmentTime] = useState<Date | null>(null);
-  const [notes, setNotes] = useState('');
+  const loadDoctorData = useCallback(async () => {
+    if (!id) return;
 
-  const fetchDoctor = useCallback(async () => {
     try {
       setLoading(true);
-      const doctorData = await connectApiService.getDoctorById(id!);
-      setDoctor(doctorData);
       setError(null);
+
+      // Load doctor data
+      const doctorData = await connectApiService.getDoctorById(id);
+      setDoctor(doctorData);
+
+      // Load reviews
+      const reviewsData = await connectApiService.getReviews(id);
+      setReviews(reviewsData.data);
+
+      // Load education
+      const educationData = await connectApiService.getEducation(id);
+      setEducation(educationData.data);
+
+      // Load licensure
+      const licensureData = await connectApiService.getLicensure(id);
+      setLicensure(licensureData.data);
+
     } catch (err) {
-      setError('Failed to fetch doctor details. Please try again.');
-      console.error('Error fetching doctor:', err);
+      setError('Failed to load doctor profile');
+      console.error('Error loading doctor:', err);
     } finally {
       setLoading(false);
     }
@@ -60,238 +110,377 @@ const DoctorDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      fetchDoctor();
+      loadDoctorData();
     }
-  }, [id, fetchDoctor]);
+  }, [id, loadDoctorData]);
 
-  const handleBookAppointment = async () => {
-    if (!appointmentDate || !appointmentTime || !user) {
-      return;
-    }
-
-    setBookingLoading(true);
-    setBookingError(null);
+  const handleContactRequest = async () => {
+    if (!id || !contactMessage.trim()) return;
 
     try {
-      const appointmentData = {
-        patientId: user.id,
-        providerId: doctor!.id,
-        appointmentDate: format(appointmentDate, 'yyyy-MM-dd'),
-        appointmentTime: format(appointmentTime, 'HH:mm'),
-        notes: notes || undefined,
-      };
+      await connectApiService.createContactRequest({
+        provider_id: id,
+        message: contactMessage,
+        contact_method: contactMethod,
+      });
 
-      await connectApiService.createAppointment(appointmentData);
-      setBookingSuccess(true);
-      
-      // Redirect to appointments page after a short delay
-      setTimeout(() => {
-        navigate('/appointments');
-      }, 2000);
-    } catch (err: any) {
-      setBookingError(err.message || 'Failed to book appointment. Please try again.');
-    } finally {
-      setBookingLoading(false);
+      setContactDialogOpen(false);
+      setContactMessage('');
+      // Show success message
+    } catch (err) {
+      setError('Failed to send contact request');
     }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
       </Container>
     );
   }
 
-  if (error || !doctor) {
+  if (error) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error || 'Doctor not found'}
-        </Alert>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
+
+  if (!doctor) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="warning">Doctor not found</Alert>
+      </Container>
+    );
+  }
+
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+    : 0;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {/* Doctor Information */}
-        <Box sx={{ flex: '1 1 600px', minWidth: 0 }}>
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-                <Avatar
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    mr: 3,
-                    bgcolor: 'primary.main',
-                    fontSize: '2.5rem',
-                  }}
+      {/* Doctor Header */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+            <Avatar
+              sx={{ width: 120, height: 120 }}
+              src={`https://ui-avatars.com/api/?name=${doctor.full_name}&size=120&background=random`}
+            />
+            <Box sx={{ flex: 1, minWidth: 300 }}>
+              <Typography variant="h4" gutterBottom>
+                Dr. {doctor.full_name}
+              </Typography>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {doctor.specialization || 'Healthcare Professional'}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Rating value={averageRating} readOnly precision={0.1} />
+                <Typography variant="body2" sx={{ ml: 1 }}>
+                  ({reviews.length} reviews)
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                <Chip
+                  icon={<LocationOn />}
+                  label={doctor.location || 'Location not specified'}
+                  variant="outlined"
+                />
+                <Chip
+                  icon={<Work />}
+                  label={doctor.experience || 'Experience not specified'}
+                  variant="outlined"
+                />
+                <Chip
+                  icon={doctor.is_available ? <CheckCircle /> : <Schedule />}
+                  label={doctor.is_available ? 'Available' : 'Not Available'}
+                  color={doctor.is_available ? 'success' : 'default'}
+                  variant="outlined"
+                />
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Message />}
+                  onClick={() => setContactDialogOpen(true)}
                 >
-                  {doctor.full_name.charAt(0)}
-                </Avatar>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                    Dr. {doctor.full_name}
-                  </Typography>
-                  <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
-                    {doctor.specialization}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Rating value={doctor.rating} readOnly size="large" />
-                    <Typography variant="body1" sx={{ ml: 1, fontWeight: 600 }}>
-                      {doctor.rating}/5
+                  Contact Dr. {doctor.full_name?.split(' ')[0] || 'Doctor'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<CalendarToday />}
+                  onClick={() => setContactDialogOpen(true)}
+                >
+                  Book Appointment
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Doctor Tabs */}
+      <Card>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tabValue} onChange={handleTabChange}>
+            <Tab label="Overview" />
+            <Tab label="Reviews & Ratings" />
+            <Tab label="Education" />
+            <Tab label="Licensure" />
+            <Tab label="Contact" />
+          </Tabs>
+        </Box>
+
+        {/* Overview Tab */}
+        <TabPanel value={tabValue} index={0}>
+          <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+            <Box sx={{ flex: 1 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Professional Information
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemIcon><Person /></ListItemIcon>
+                    <ListItemText 
+                      primary="Full Name" 
+                      secondary={`Dr. ${doctor.full_name}`} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><Email /></ListItemIcon>
+                    <ListItemText 
+                      primary="Email" 
+                      secondary={doctor.email} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><Phone /></ListItemIcon>
+                    <ListItemText 
+                      primary="Phone" 
+                      secondary={doctor.phone_number || 'Not provided'} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><Work /></ListItemIcon>
+                    <ListItemText 
+                      primary="Specialization" 
+                      secondary={doctor.specialization || 'Not specified'} 
+                    />
+                  </ListItem>
+                </List>
+              </Paper>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Statistics
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                  <Box textAlign="center">
+                    <Typography variant="h4" color="primary">
+                      {averageRating.toFixed(1)}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Average Rating
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {doctor.is_verified && (
-                      <Chip
-                        label="Verified"
-                        color="success"
-                        variant="outlined"
-                        size="small"
-                      />
-                    )}
-                    {doctor.is_available && (
-                      <Chip
-                        label="Available"
-                        color="primary"
-                        variant="outlined"
-                        size="small"
-                      />
-                    )}
+                  <Box textAlign="center">
+                    <Typography variant="h4" color="primary">
+                      {reviews.length}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Total Reviews
+                    </Typography>
                   </Box>
                 </Box>
-              </Box>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                {doctor.location && (
-                  <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <LocationIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        Location
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {doctor.location}
-                    </Typography>
-                  </Box>
-                )}
-                {doctor.phone_number && (
-                  <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <PhoneIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        Contact
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {doctor.phone_number}
-                    </Typography>
-                  </Box>
-                )}
-                {doctor.experience && (
-                  <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <PersonIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        Experience
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {doctor.experience} years
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-
-        {/* Booking Form */}
-        <Box sx={{ flex: '1 1 350px', minWidth: 0 }}>
-          <Paper elevation={3} sx={{ p: 3, position: 'sticky', top: 20 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-              Book Appointment
-            </Typography>
-
-            {bookingSuccess && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Appointment booked successfully! Redirecting to appointments page...
-              </Alert>
-            )}
-
-            {bookingError && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {bookingError}
-              </Alert>
-            )}
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <DatePicker
-                label="Appointment Date"
-                value={appointmentDate}
-                onChange={(newValue) => setAppointmentDate(newValue)}
-                disablePast
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                  },
-                }}
-              />
-
-              <TimePicker
-                label="Appointment Time"
-                value={appointmentTime}
-                onChange={(newValue) => setAppointmentTime(newValue)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                  },
-                }}
-              />
-
-              <TextField
-                fullWidth
-                label="Notes (Optional)"
-                multiline
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any special requests or notes for the doctor..."
-              />
-
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<ScheduleIcon />}
-                onClick={handleBookAppointment}
-                disabled={bookingLoading || !appointmentDate || !appointmentTime || !user}
-                sx={{ py: 1.5 }}
-              >
-                {bookingLoading ? 'Booking...' : 'Book Appointment'}
-              </Button>
-
-              {!user && (
-                <Alert severity="info">
-                  Please log in to book an appointment.
-                </Alert>
-              )}
+              </Paper>
             </Box>
-          </Paper>
-        </Box>
-      </Box>
+          </Box>
+        </TabPanel>
+
+        {/* Reviews Tab */}
+        <TabPanel value={tabValue} index={1}>
+          <Typography variant="h6" gutterBottom>
+            Reviews & Ratings ({reviews.length})
+          </Typography>
+          {reviews.length === 0 ? (
+            <Alert severity="info">No reviews yet</Alert>
+          ) : (
+            <Stack spacing={2}>
+              {reviews.map((review) => (
+                <Paper key={review.id} sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="subtitle1">
+                      {review.user?.full_name || 'Anonymous'}
+                    </Typography>
+                    <Rating value={review.rating} readOnly size="small" />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {review.comment}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </Typography>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </TabPanel>
+
+        {/* Education Tab */}
+        <TabPanel value={tabValue} index={2}>
+          <Typography variant="h6" gutterBottom>
+            Education
+          </Typography>
+          {education.length === 0 ? (
+            <Alert severity="info">No education information available</Alert>
+          ) : (
+            <Stack spacing={2}>
+              {education.map((edu) => (
+                <Paper key={edu.id} sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <School sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">{edu.degree}</Typography>
+                  </Box>
+                  <Typography variant="subtitle1" color="primary">
+                    {edu.institution}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {edu.field_of_study} • {edu.graduation_year}
+                    {edu.gpa && ` • GPA: ${edu.gpa}`}
+                  </Typography>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </TabPanel>
+
+        {/* Licensure Tab */}
+        <TabPanel value={tabValue} index={3}>
+          <Typography variant="h6" gutterBottom>
+            Licensure & Certifications
+          </Typography>
+          {licensure.length === 0 ? (
+            <Alert severity="info">No licensure information available</Alert>
+          ) : (
+            <Stack spacing={2}>
+              {licensure.map((license) => (
+                <Paper key={license.id} sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <LocalHospital sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">{license.license_type}</Typography>
+                    <Chip
+                      label={license.is_active ? 'Active' : 'Inactive'}
+                      color={license.is_active ? 'success' : 'default'}
+                      size="small"
+                      sx={{ ml: 2 }}
+                    />
+                  </Box>
+                  <Typography variant="subtitle1" color="primary">
+                    {license.issuing_authority}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    License #: {license.license_number}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Issued: {new Date(license.issue_date).toLocaleDateString()} • 
+                    Expires: {new Date(license.expiry_date).toLocaleDateString()}
+                  </Typography>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </TabPanel>
+
+        {/* Contact Tab */}
+        <TabPanel value={tabValue} index={4}>
+          <Typography variant="h6" gutterBottom>
+            Contact Information
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Box sx={{ flex: 1 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  <Email sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Email
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {doctor.email}
+                </Typography>
+              </Paper>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  <Phone sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Phone
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {doctor.phone_number || 'Not provided'}
+                </Typography>
+              </Paper>
+            </Box>
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                <LocationOn sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Location
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {doctor.location || 'Not specified'}
+              </Typography>
+            </Paper>
+          </Box>
+        </TabPanel>
+      </Card>
+
+      {/* Contact Dialog */}
+      <Dialog open={contactDialogOpen} onClose={() => setContactDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Contact Dr. {doctor.full_name?.split(' ')[0] || 'Doctor'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            select
+            fullWidth
+            label="Contact Method"
+            value={contactMethod}
+            onChange={(e) => setContactMethod(e.target.value as 'phone' | 'email' | 'appointment')}
+            sx={{ mb: 2, mt: 1 }}
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="appointment">Book Appointment</option>
+            <option value="phone">Phone Call</option>
+            <option value="email">Email</option>
+          </TextField>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="Message"
+            value={contactMessage}
+            onChange={(e) => setContactMessage(e.target.value)}
+            placeholder="Please describe your needs or questions..."
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setContactDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleContactRequest} variant="contained">
+            Send Request
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
 
-export default DoctorDetailPage; 
+export default DoctorDetailPage;

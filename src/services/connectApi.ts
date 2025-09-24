@@ -1,7 +1,7 @@
 // Simple Connect-RPC service using fetch
 // This will be replaced by proper Connect-RPC client when protobuf generation is working
 
-const API_BASE_URL = 'https://demoafya.ddnsgeek.com/api/v1';
+const API_BASE_URL = 'https://api.afyagate.com/api/v1';
 
 // Cache for API responses
 const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
@@ -12,7 +12,7 @@ const pendingRequests = new Map<string, Promise<any>>();
 // Helper function to make Connect-RPC requests with caching
 async function makeConnectRequest<T>(
   path: string, 
-  method: 'GET' | 'POST' = 'POST', 
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'POST', 
   body?: any,
   useCache: boolean = true,
   cacheTTL: number = 30000 // 30 seconds default
@@ -60,22 +60,22 @@ async function makeConnectRequest<T>(
           const refreshToken = localStorage.getItem('refresh_token');
           if (refreshToken) {
             try {
-              const refreshResponse = await fetch(`${API_BASE_URL}/afiagate.v1.AuthService/RefreshToken`, {
+              const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Connect-Protocol-Version': '1',
                 },
-                body: JSON.stringify({ refreshToken }),
+                body: JSON.stringify({ refresh_token: refreshToken }),
               });
               
               if (refreshResponse.ok) {
                 const refreshData = await refreshResponse.json();
-                localStorage.setItem('access_token', refreshData.accessToken);
-                localStorage.setItem('refresh_token', refreshData.refreshToken);
+                localStorage.setItem('access_token', refreshData.access_token);
+                localStorage.setItem('refresh_token', refreshData.refresh_token);
                 
                 // Retry original request with new token
-                headers['Authorization'] = `Bearer ${refreshData.accessToken}`;
+                headers['Authorization'] = `Bearer ${refreshData.access_token}`;
                 const retryResponse = await fetch(url, {
                   method,
                   headers,
@@ -141,17 +141,17 @@ function transformUser(connectUser: any) {
   return {
     id: connectUser.id,
     email: connectUser.email,
-    full_name: connectUser.fullName,
-    phone_number: connectUser.phoneNumber,
-    role: connectUser.role.toLowerCase(),
-    is_verified: connectUser.isVerified,
+    full_name: connectUser.full_name,
+    phone_number: connectUser.phone_number,
+    role: connectUser.role?.toLowerCase() || 'user',
+    is_verified: connectUser.is_verified,
     location: connectUser.location,
     specialization: connectUser.specialization,
     experience: connectUser.experience,
     rating: connectUser.rating,
-    is_available: connectUser.isAvailable,
-    created_at: connectUser.createdAt,
-    updated_at: connectUser.updatedAt,
+    is_available: connectUser.is_available,
+    created_at: connectUser.created_at,
+    updated_at: connectUser.updated_at,
   };
 }
 
@@ -165,14 +165,14 @@ function transformFacility(connectFacility: any) {
     distance: connectFacility.distance,
     rating: connectFacility.rating,
     services: connectFacility.services,
-    phone_number: connectFacility.phoneNumber,
-    operating_hours: connectFacility.operatingHours,
+    phone_number: connectFacility.phone_number || connectFacility.phoneNumber,
+    operating_hours: connectFacility.operating_hours || connectFacility.operatingHours,
     specialties: connectFacility.specialties,
-    is_emergency: connectFacility.isEmergency,
+    is_emergency: connectFacility.is_emergency || connectFacility.isEmergency,
     description: connectFacility.description,
-    created_at: connectFacility.createdAt,
-    updated_at: connectFacility.updatedAt,
-    available_services: connectFacility.availableServices || [],
+    created_at: connectFacility.created_at || connectFacility.createdAt,
+    updated_at: connectFacility.updated_at || connectFacility.updatedAt,
+    available_services: connectFacility.available_services || connectFacility.availableServices || [],
   };
 }
 
@@ -180,16 +180,16 @@ function transformFacility(connectFacility: any) {
 function transformAppointment(connectAppointment: any) {
   return {
     id: connectAppointment.id,
-    patient_id: connectAppointment.patientId,
-    provider_id: connectAppointment.providerId,
-    facility_id: connectAppointment.facilityId,
-    service_id: connectAppointment.serviceId,
-    appointment_date: connectAppointment.appointmentDate,
-    appointment_time: connectAppointment.appointmentTime,
+    patient_id: connectAppointment.patient_id || connectAppointment.patientId,
+    provider_id: connectAppointment.provider_id || connectAppointment.providerId,
+    facility_id: connectAppointment.facility_id || connectAppointment.facilityId,
+    service_id: connectAppointment.service_id || connectAppointment.serviceId,
+    appointment_date: connectAppointment.appointment_date || connectAppointment.appointmentDate,
+    appointment_time: connectAppointment.appointment_time || connectAppointment.appointmentTime,
     notes: connectAppointment.notes,
-    status: connectAppointment.status.toLowerCase(),
-    created_at: connectAppointment.createdAt,
-    updated_at: connectAppointment.updatedAt,
+    status: connectAppointment.status?.toLowerCase() || 'pending',
+    created_at: connectAppointment.created_at || connectAppointment.createdAt,
+    updated_at: connectAppointment.updated_at || connectAppointment.updatedAt,
   };
 }
 
@@ -244,14 +244,14 @@ class ConnectApiService {
   // Auth endpoints
   async login(email: string, password: string) {
     const response = await makeConnectRequest<{
-      accessToken: string;
-      refreshToken: string;
+      access_token: string;
+      refresh_token: string;
       user: User;
-    }>('/afiagate.v1.AuthService/Login', 'POST', { email, password }, false);
+    }>('/auth/login', 'POST', { email, password }, false);
     
     return {
-      access_token: response.accessToken,
-      refresh_token: response.refreshToken,
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
       user: transformUser(response.user)
     };
   }
@@ -265,28 +265,28 @@ class ConnectApiService {
     location?: string;
   }) {
     const response = await makeConnectRequest<{
-      accessToken: string;
-      refreshToken: string;
+      access_token: string;
+      refresh_token: string;
       user: User;
-    }>('/afiagate.v1.AuthService/Register', 'POST', userData, false);
+    }>('/auth/register', 'POST', userData, false);
     
     return {
-      access_token: response.accessToken,
-      refresh_token: response.refreshToken,
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
       user: transformUser(response.user)
     };
   }
 
   async refreshToken(refreshToken: string) {
     const response = await makeConnectRequest<{
-      accessToken: string;
-      refreshToken: string;
+      access_token: string;
+      refresh_token: string;
       user: User;
-    }>('/afiagate.v1.AuthService/RefreshToken', 'POST', { refreshToken }, false);
+    }>('/auth/refresh', 'POST', { refresh_token: refreshToken }, false);
     
     return {
-      access_token: response.accessToken,
-      refresh_token: response.refreshToken,
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
       user: transformUser(response.user)
     };
   }
@@ -294,14 +294,14 @@ class ConnectApiService {
   async logout() {
     const refreshToken = localStorage.getItem('refresh_token');
     if (refreshToken) {
-      await makeConnectRequest('/afiagate.v1.AuthService/Logout', 'POST', { refreshToken }, false);
+      await makeConnectRequest('/auth/logout', 'POST', { refresh_token: refreshToken }, false);
     }
   }
 
   // User endpoints
   async getProfile(userId: string) {
-    const response = await makeConnectRequest<{ user: User }>('/afiagate.v1.UserService/GetUser', 'POST', { id: userId });
-    return transformUser(response.user);
+    const response = await makeConnectRequest<User>(`/users/${userId}`, 'GET');
+    return transformUser(response);
   }
 
   async updateProfile(userId: string, userData: {
@@ -309,11 +309,8 @@ class ConnectApiService {
     phoneNumber?: string;
     location?: string;
   }) {
-    const response = await makeConnectRequest<{ user: User }>('/afiagate.v1.UserService/UpdateUser', 'POST', {
-      id: userId,
-      ...userData
-    }, false);
-    return transformUser(response.user);
+    const response = await makeConnectRequest<User>(`/users/${userId}`, 'PUT', userData, false);
+    return transformUser(response);
   }
 
   async getDoctors(params?: {
@@ -321,20 +318,22 @@ class ConnectApiService {
     limit?: number;
     search?: string;
   }) {
+    const queryParams = new URLSearchParams({
+      role: 'doctor',
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString(),
+      search: params?.search || ''
+    });
+    
     const response = await makeConnectRequest<{
-      users: User[];
+      data: User[];
       total: number;
       page: number;
       limit: number;
-    }>('/afiagate.v1.UserService/ListUsers', 'POST', {
-      role: 'doctor',
-      page: params?.page || 1,
-      limit: params?.limit || 10,
-      search: params?.search || ''
-    }, true, 60000); // Cache for 1 minute
+    }>(`/users?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.users.map(transformUser),
+      data: response.data.map(transformUser),
       total: response.total,
       page: response.page,
       limit: response.limit
@@ -342,8 +341,8 @@ class ConnectApiService {
   }
 
   async getDoctorById(id: string) {
-    const response = await makeConnectRequest<{ user: User }>('/afiagate.v1.UserService/GetUser', 'POST', { id }, true, 300000); // Cache for 5 minutes
-    return transformUser(response.user);
+    const response = await makeConnectRequest<User>(`/users/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    return transformUser(response);
   }
 
   // Facility endpoints
@@ -353,29 +352,46 @@ class ConnectApiService {
     type?: string;
     location?: string;
   }) {
-    const response = await makeConnectRequest<{ facilities: Facility[] }>('/afiagate.v1.FacilityService/ListFacilities', 'POST', {
-      page: params?.page || 1,
-      limit: params?.limit || 10,
+    const queryParams = new URLSearchParams({
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString(),
       type: params?.type || '',
       location: params?.location || ''
-    }, true, 60000); // Cache for 1 minute
+    });
+    
+    const response = await makeConnectRequest<{
+      data: Facility[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/facilities?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.facilities.map(transformFacility),
-      total: 0, // Not returned by current API
-      page: params?.page || 1,
-      limit: params?.limit || 10
+      data: response.data.map(transformFacility),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
     };
   }
 
   async getFacilityById(id: string) {
-    const response = await makeConnectRequest<{ facility: Facility }>('/afiagate.v1.FacilityService/GetFacility', 'POST', { id }, true, 300000); // Cache for 5 minutes
-    return transformFacility(response.facility);
+    const response = await makeConnectRequest<Facility>(`/facilities/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    return transformFacility(response);
   }
 
   async getFacilityTypes() {
-    const response = await makeConnectRequest<{ types: string[] }>('/afiagate.v1.FacilityService/GetFacilityTypes', 'POST', {}, true, 300000); // Cache for 5 minutes
-    return response.types;
+    // For now, return a static list since the API doesn't have a specific endpoint
+    // This could be enhanced to fetch from a dedicated endpoint if available
+    return [
+      'Hospital',
+      'Clinic', 
+      'Medical Center',
+      'Laboratory',
+      'Pharmacy',
+      'Dental Clinic',
+      'Eye Clinic',
+      'Specialty Center'
+    ];
   }
 
   async bookFacility(bookingData: {
@@ -401,8 +417,8 @@ class ConnectApiService {
     appointmentTime: string;
     notes?: string;
   }) {
-    const response = await makeConnectRequest<{ appointment: Appointment }>('/afiagate.v1.AppointmentService/CreateAppointment', 'POST', appointmentData, false);
-    return transformAppointment(response.appointment);
+    const response = await makeConnectRequest<Appointment>('/appointments', 'POST', appointmentData, false);
+    return transformAppointment(response);
   }
 
   async getAppointments(params?: {
@@ -411,20 +427,22 @@ class ConnectApiService {
     page?: number;
     limit?: number;
   }) {
+    const queryParams = new URLSearchParams({
+      userId: params?.userId || '',
+      status: params?.status || '',
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
     const response = await makeConnectRequest<{
-      appointments: Appointment[];
+      data: Appointment[];
       total: number;
       page: number;
       limit: number;
-    }>('/afiagate.v1.AppointmentService/ListAppointments', 'POST', {
-      userId: params?.userId || '',
-      status: params?.status || '',
-      page: params?.page || 1,
-      limit: params?.limit || 10
-    }, true, 30000); // Cache for 30 seconds
+    }>(`/appointments?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
     
     return {
-      data: response.appointments.map(transformAppointment),
+      data: response.data.map(transformAppointment),
       total: response.total,
       page: response.page,
       limit: response.limit
@@ -432,8 +450,8 @@ class ConnectApiService {
   }
 
   async getAppointmentById(id: string) {
-    const response = await makeConnectRequest<{ appointment: Appointment }>('/afiagate.v1.AppointmentService/GetAppointment', 'POST', { id }, true, 300000); // Cache for 5 minutes
-    return transformAppointment(response.appointment);
+    const response = await makeConnectRequest<Appointment>(`/appointments/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    return transformAppointment(response);
   }
 
   async updateAppointment(id: string, appointmentData: {
@@ -441,20 +459,222 @@ class ConnectApiService {
     appointmentTime?: string;
     notes?: string;
   }) {
-    const response = await makeConnectRequest<{ appointment: Appointment }>('/afiagate.v1.AppointmentService/UpdateAppointment', 'POST', {
-      id,
-      ...appointmentData
-    }, false);
-    return transformAppointment(response.appointment);
+    const response = await makeConnectRequest<Appointment>(`/appointments/${id}`, 'PUT', appointmentData, false);
+    return transformAppointment(response);
   }
 
   async cancelAppointment(id: string, reason?: string) {
-    const response = await makeConnectRequest<{ success: boolean }>('/afiagate.v1.AppointmentService/CancelAppointment', 'POST', {
-      id,
+    const response = await makeConnectRequest<{ success: boolean }>(`/appointments/${id}/cancel`, 'POST', {
       reason: reason || ''
     }, false);
     return response.success;
   }
+
+  // Review endpoints
+  async getReviews(providerId: string, params?: {
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      provider_id: providerId,
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/reviews?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
+    
+    return {
+      data: response.data.map(transformReview),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+
+  async createReview(reviewData: {
+    provider_id: string;
+    rating: number;
+    comment: string;
+  }) {
+    const response = await makeConnectRequest<any>('/reviews', 'POST', reviewData, false);
+    return transformReview(response);
+  }
+
+  // Education endpoints
+  async getEducation(userId: string, params?: {
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      user_id: userId,
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/education?${queryParams}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    
+    return {
+      data: response.data.map(transformEducation),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+
+  async createEducation(educationData: {
+    institution: string;
+    degree: string;
+    field_of_study: string;
+    graduation_year: number;
+    gpa?: number;
+  }) {
+    const response = await makeConnectRequest<any>('/education', 'POST', educationData, false);
+    return transformEducation(response);
+  }
+
+  // Licensure endpoints
+  async getLicensure(userId: string, params?: {
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      user_id: userId,
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/licensure?${queryParams}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
+    
+    return {
+      data: response.data.map(transformLicensure),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+
+  async createLicensure(licensureData: {
+    license_number: string;
+    issuing_authority: string;
+    license_type: string;
+    issue_date: string;
+    expiry_date: string;
+  }) {
+    const response = await makeConnectRequest<any>('/licensure', 'POST', licensureData, false);
+    return transformLicensure(response);
+  }
+
+  // Contact request endpoints
+  async createContactRequest(contactData: {
+    provider_id: string;
+    message: string;
+    contact_method: 'phone' | 'email' | 'appointment';
+  }) {
+    const response = await makeConnectRequest<any>('/contact-requests', 'POST', contactData, false);
+    return transformContactRequest(response);
+  }
+
+  async getContactRequests(params?: {
+    provider_id?: string;
+    requester_id?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const queryParams = new URLSearchParams({
+      provider_id: params?.provider_id || '',
+      requester_id: params?.requester_id || '',
+      status: params?.status || '',
+      page: (params?.page || 1).toString(),
+      limit: (params?.limit || 10).toString()
+    });
+    
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/contact-requests?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
+    
+    return {
+      data: response.data.map(transformContactRequest),
+      total: response.total,
+      page: response.page,
+      limit: response.limit
+    };
+  }
+}
+
+// Transform functions for new data types
+function transformReview(connectReview: any) {
+  return {
+    id: connectReview.id,
+    user_id: connectReview.user_id,
+    provider_id: connectReview.provider_id,
+    rating: connectReview.rating,
+    comment: connectReview.comment,
+    created_at: connectReview.created_at,
+    updated_at: connectReview.updated_at,
+    user: connectReview.user ? transformUser(connectReview.user) : undefined,
+  };
+}
+
+function transformEducation(connectEducation: any) {
+  return {
+    id: connectEducation.id,
+    user_id: connectEducation.user_id,
+    institution: connectEducation.institution,
+    degree: connectEducation.degree,
+    field_of_study: connectEducation.field_of_study,
+    graduation_year: connectEducation.graduation_year,
+    gpa: connectEducation.gpa,
+    created_at: connectEducation.created_at,
+    updated_at: connectEducation.updated_at,
+  };
+}
+
+function transformLicensure(connectLicensure: any) {
+  return {
+    id: connectLicensure.id,
+    user_id: connectLicensure.user_id,
+    license_number: connectLicensure.license_number,
+    issuing_authority: connectLicensure.issuing_authority,
+    license_type: connectLicensure.license_type,
+    issue_date: connectLicensure.issue_date,
+    expiry_date: connectLicensure.expiry_date,
+    is_active: connectLicensure.is_active,
+    created_at: connectLicensure.created_at,
+    updated_at: connectLicensure.updated_at,
+  };
+}
+
+function transformContactRequest(connectContactRequest: any) {
+  return {
+    id: connectContactRequest.id,
+    requester_id: connectContactRequest.requester_id,
+    provider_id: connectContactRequest.provider_id,
+    message: connectContactRequest.message,
+    contact_method: connectContactRequest.contact_method,
+    status: connectContactRequest.status,
+    created_at: connectContactRequest.created_at,
+    updated_at: connectContactRequest.updated_at,
+    requester: connectContactRequest.requester ? transformUser(connectContactRequest.requester) : undefined,
+  };
 }
 
 export const connectApiService = new ConnectApiService();
