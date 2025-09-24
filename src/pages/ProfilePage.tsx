@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Card,
@@ -40,7 +40,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { connectApiService } from '../services/connectApi';
-import { User, Review, Education, Licensure, ContactRequest } from '../types';
+import { User, Review, Education, Licensure } from '../types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -77,13 +77,7 @@ const ProfilePage: React.FC = () => {
   const [contactMessage, setContactMessage] = useState('');
   const [contactMethod, setContactMethod] = useState<'phone' | 'email' | 'appointment'>('appointment');
 
-  useEffect(() => {
-    if (user) {
-      loadProfileData();
-    }
-  }, [user]);
-
-  const loadProfileData = async () => {
+  const loadProfileData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -112,7 +106,13 @@ const ProfilePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadProfileData();
+    }
+  }, [user, loadProfileData]);
 
   const handleContactRequest = async () => {
     if (!user || !contactMessage.trim()) return;

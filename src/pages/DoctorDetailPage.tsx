@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Card,
@@ -40,7 +40,7 @@ import {
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { connectApiService } from '../services/connectApi';
-import { User, Review, Education, Licensure, ContactRequest } from '../types';
+import { User, Review, Education, Licensure } from '../types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -77,13 +77,7 @@ const DoctorDetailPage: React.FC = () => {
   const [contactMessage, setContactMessage] = useState('');
   const [contactMethod, setContactMethod] = useState<'phone' | 'email' | 'appointment'>('appointment');
 
-  useEffect(() => {
-    if (id) {
-      loadDoctorData();
-    }
-  }, [id]);
-
-  const loadDoctorData = async () => {
+  const loadDoctorData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -112,7 +106,13 @@ const DoctorDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadDoctorData();
+    }
+  }, [id, loadDoctorData]);
 
   const handleContactRequest = async () => {
     if (!id || !contactMessage.trim()) return;
