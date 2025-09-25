@@ -121,14 +121,13 @@ const AppointmentsPage: React.FC = () => {
   const [providers, setProviders] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isAuthenticated) {
       loadAppointments();
       loadProviders();
       loadFacilities();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadAppointments = async () => {
     try {

@@ -79,12 +79,11 @@ const FacilityDetailPage: React.FC = () => {
     preferredContact: 'phone',
   });
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (id) {
       loadFacility();
     }
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadFacility = async () => {
     try {

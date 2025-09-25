@@ -86,10 +86,9 @@ const JobPostingsPage: React.FC = () => {
     application_url: '',
   });
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadJobPostings();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadJobPostings = async () => {
     try {

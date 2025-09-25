@@ -53,7 +53,6 @@ const MapComponent: React.FC<MapProps> = ({
     }
   }, [center, zoom, map]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (map && markers.length > 0) {
       // Clear existing markers
@@ -97,7 +96,7 @@ const MapComponent: React.FC<MapProps> = ({
       
       setMapMarkers(newMarkers);
     }
-  }, [map, markers, onMarkerClick, mapMarkers]);
+  }, [map, markers, onMarkerClick, mapMarkers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getMarkerIcon = (type: string) => {
     const baseIcon = {
