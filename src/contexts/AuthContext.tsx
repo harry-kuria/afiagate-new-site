@@ -10,6 +10,13 @@ interface AuthContextType {
   register: (userData: any) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
+  isPatient: boolean;
+  isCaregiver: boolean;
+  isDoctor: boolean;
+  isAdmin: boolean;
+  canBookAppointments: boolean;
+  canPostJobs: boolean;
+  canManageUsers: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -104,6 +111,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Role-based helper functions
+  const isPatient = user?.role === 'patient';
+  const isCaregiver = user?.role === 'caregiver';
+  const isDoctor = user?.role === 'doctor';
+  const isAdmin = user?.role === 'admin';
+  
+  // Permission helpers
+  const canBookAppointments = isPatient || isCaregiver;
+  const canPostJobs = isDoctor || isCaregiver || user?.role === 'facility';
+  const canManageUsers = isAdmin;
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -112,6 +130,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateUser,
+    isPatient,
+    isCaregiver,
+    isDoctor,
+    isAdmin,
+    canBookAppointments,
+    canPostJobs,
+    canManageUsers,
   };
 
   return (

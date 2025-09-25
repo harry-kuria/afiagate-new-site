@@ -3,7 +3,7 @@ export interface User {
   email: string;
   full_name: string;
   phone_number?: string;
-  role: 'patient' | 'doctor' | 'nurse' | 'caregiver' | 'facility';
+  role: 'patient' | 'doctor' | 'nurse' | 'caregiver' | 'facility' | 'admin';
   is_verified: boolean;
   location?: string;
   specialization?: string;
@@ -20,10 +20,14 @@ export interface Facility {
   name: string;
   type: string;
   location: string;
+  address?: string;
+  phone?: string;
+  phone_number?: string;
+  latitude?: number;
+  longitude?: number;
   distance?: string;
   rating: number;
   services: string[];
-  phone_number?: string;
   operating_hours?: string;
   specialties: string[];
   is_emergency: boolean;
@@ -88,7 +92,7 @@ export interface RegisterRequest {
   password: string;
   full_name: string;
   phone_number?: string;
-  role: 'patient' | 'doctor' | 'nurse' | 'caregiver' | 'facility';
+  role: 'patient' | 'doctor' | 'nurse' | 'caregiver' | 'facility' | 'admin';
   location?: string;
   specialization?: string;
   facility_name?: string;

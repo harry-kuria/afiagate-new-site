@@ -408,67 +408,10 @@ class ConnectApiService {
   }
 
   // Appointment endpoints
-  async createAppointment(appointmentData: {
-    patientId: string;
-    providerId: string;
-    facilityId?: string;
-    serviceId?: string;
-    appointmentDate: string;
-    appointmentTime: string;
-    notes?: string;
-  }) {
-    const response = await makeConnectRequest<Appointment>('/appointments', 'POST', appointmentData, false);
-    return transformAppointment(response);
-  }
 
-  async getAppointments(params?: {
-    userId?: string;
-    status?: string;
-    page?: number;
-    limit?: number;
-  }) {
-    const queryParams = new URLSearchParams({
-      userId: params?.userId || '',
-      status: params?.status || '',
-      page: (params?.page || 1).toString(),
-      limit: (params?.limit || 10).toString()
-    });
-    
-    const response = await makeConnectRequest<{
-      data: Appointment[];
-      total: number;
-      page: number;
-      limit: number;
-    }>(`/appointments?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
-    
-    return {
-      data: response.data ? response.data.map(transformAppointment) : [],
-      total: response.total || 0,
-      page: response.page || 1,
-      limit: response.limit || 10
-    };
-  }
 
-  async getAppointmentById(id: string) {
-    const response = await makeConnectRequest<Appointment>(`/appointments/${id}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
-    return transformAppointment(response);
-  }
 
-  async updateAppointment(id: string, appointmentData: {
-    appointmentDate?: string;
-    appointmentTime?: string;
-    notes?: string;
-  }) {
-    const response = await makeConnectRequest<Appointment>(`/appointments/${id}`, 'PUT', appointmentData, false);
-    return transformAppointment(response);
-  }
 
-  async cancelAppointment(id: string, reason?: string) {
-    const response = await makeConnectRequest<{ success: boolean }>(`/appointments/${id}/cancel`, 'POST', {
-      reason: reason || ''
-    }, false);
-    return response.success;
-  }
 
   // Review endpoints
   async getReviews(providerId: string, params?: {
@@ -617,6 +560,190 @@ class ConnectApiService {
       page: response.page || 1,
       limit: response.limit || 10
     };
+  }
+
+  // Admin API methods
+  async getPendingVerifications(params?: { page?: number; limit?: number; role?: string }) {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.role) queryParams.append('role', params.role);
+
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/admin/pending-verifications?${queryParams}`, 'GET', undefined, true, 30000);
+    
+    return {
+      data: response.data || [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
+    };
+  }
+
+  async verifyUser(userId: string) {
+    return await makeConnectRequest<any>(`/admin/verify/${userId}`, 'POST', undefined, false);
+  }
+
+  async rejectUser(userId: string, reason: string) {
+    return await makeConnectRequest<any>(`/admin/reject/${userId}`, 'POST', { reason }, false);
+  }
+
+  async getUserStats() {
+    return await makeConnectRequest<any>('/admin/stats', 'GET', undefined, true, 60000);
+  }
+
+  async getCaregiverBookings(params?: { page?: number; limit?: number; status?: string }) {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.status) queryParams.append('status', params.status);
+
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/admin/caregiver-bookings?${queryParams}`, 'GET', undefined, true, 30000);
+    
+    return {
+      data: response.data || [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
+    };
+  }
+
+  async approveCaregiverBooking(bookingId: string) {
+    return await makeConnectRequest<any>(`/admin/approve-booking/${bookingId}`, 'POST', undefined, false);
+  }
+
+  async rejectCaregiverBooking(bookingId: string, reason: string) {
+    return await makeConnectRequest<any>(`/admin/reject-booking/${bookingId}`, 'POST', { reason }, false);
+  }
+
+  // Job Posting API methods
+  async getJobPostings(params?: { location?: string; job_type?: string; page?: number; limit?: number }) {
+    const queryParams = new URLSearchParams();
+    if (params?.location) queryParams.append('location', params.location);
+    if (params?.job_type) queryParams.append('job_type', params.job_type);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/jobs?${queryParams}`, 'GET', undefined, true, 60000);
+    
+    return {
+      data: response.data || [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
+    };
+  }
+
+  async getJobPosting(jobId: string) {
+    return await makeConnectRequest<any>(`/jobs/${jobId}`, 'GET', undefined, true, 300000);
+  }
+
+  async createJobPosting(jobData: any) {
+    return await makeConnectRequest<any>('/jobs', 'POST', jobData, false);
+  }
+
+  async updateJobPosting(jobId: string, jobData: any) {
+    return await makeConnectRequest<any>(`/jobs/${jobId}`, 'PUT', jobData, false);
+  }
+
+  async deleteJobPosting(jobId: string) {
+    return await makeConnectRequest<any>(`/jobs/${jobId}`, 'DELETE', undefined, false);
+  }
+
+  async getMyJobPostings(params?: { page?: number; limit?: number }) {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await makeConnectRequest<{
+      data: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/jobs/my?${queryParams}`, 'GET', undefined, true, 30000);
+    
+    return {
+      data: response.data || [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
+    };
+  }
+
+  // Appointment API methods
+  async getAppointments(params?: { user_id?: string; provider_id?: string; facility_id?: string; status?: string; page?: number; limit?: number }) {
+    const queryParams = new URLSearchParams();
+    if (params?.user_id) queryParams.append('user_id', params.user_id);
+    if (params?.provider_id) queryParams.append('provider_id', params.provider_id);
+    if (params?.facility_id) queryParams.append('facility_id', params.facility_id);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await makeConnectRequest<{
+      appointments: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/appointments?${queryParams}`, 'GET', undefined, true, 30000);
+    
+    return {
+      appointments: response.appointments || [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
+    };
+  }
+
+  async getAppointment(appointmentId: string) {
+    return await makeConnectRequest<any>(`/appointments/${appointmentId}`, 'GET', undefined, true, 30000);
+  }
+
+  async createAppointment(appointmentData: {
+    patient_id: string;
+    provider_id: string;
+    facility_id?: string;
+    service_id?: string;
+    appointment_date: string;
+    appointment_time: string;
+    notes?: string;
+  }) {
+    return await makeConnectRequest<any>('/appointments', 'POST', appointmentData, false);
+  }
+
+  async updateAppointment(appointmentId: string, appointmentData: {
+    appointment_date?: string;
+    appointment_time?: string;
+    notes?: string;
+    status?: string;
+  }) {
+    return await makeConnectRequest<any>(`/appointments/${appointmentId}`, 'PUT', appointmentData, false);
+  }
+
+  async cancelAppointment(appointmentId: string) {
+    return await makeConnectRequest<any>(`/appointments/${appointmentId}/cancel`, 'POST', undefined, false);
+  }
+
+  async confirmAppointment(appointmentId: string) {
+    return await makeConnectRequest<any>(`/appointments/${appointmentId}/confirm`, 'POST', undefined, false);
+  }
+
+  async completeAppointment(appointmentId: string, notes?: string) {
+    return await makeConnectRequest<any>(`/appointments/${appointmentId}/complete`, 'POST', { notes }, false);
   }
 }
 

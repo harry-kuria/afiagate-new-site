@@ -19,6 +19,10 @@ import FacilitiesPage from './pages/FacilitiesPage';
 import FacilityDetailPage from './pages/FacilityDetailPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminPanel from './pages/AdminPanel';
+import JobPostingsPage from './pages/JobPostingsPage';
+import CalendarPage from './pages/CalendarPage';
+import BookingPage from './pages/BookingPage';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
@@ -145,7 +149,11 @@ function App() {
                 <Route path="/facilities" element={<FacilitiesPage />} />
                 <Route path="/facilities/:id" element={<FacilityDetailPage />} />
                 <Route path="/appointments" element={<AppointmentsPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/jobs" element={<JobPostingsPage />} />
+                <Route path="/booking" element={<BookingPage />} />
               </Routes>
             </Layout>
             <PerformanceMonitor />

@@ -8,6 +8,8 @@
     "@connectrpc/connect-web": "^2.0.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@googlemaps/js-api-loader": "^1.16.10",
+    "@googlemaps/react-wrapper": "^1.2.0",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@mui/x-date-pickers": "^8.9.0",
@@ -53,5 +55,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/google.maps": "^3.58.1"
   }
 }

@@ -17,6 +17,10 @@ import {
   Person as PersonIcon,
   ExitToApp as LogoutIcon,
   AccountCircle as AccountIcon,
+  Work as WorkIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  CalendarToday as CalendarIcon,
+  BookOnline as BookingIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -28,7 +32,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin, canPostJobs } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -160,6 +164,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <HospitalIcon sx={{ mr: 1 }} />
                       My Appointments
                     </MenuItem>
+                    <MenuItem onClick={() => { handleClose(); navigate('/calendar'); }}>
+                      <CalendarIcon sx={{ mr: 1 }} />
+                      Calendar
+                    </MenuItem>
+                    <MenuItem onClick={() => { handleClose(); navigate('/booking'); }}>
+                      <BookingIcon sx={{ mr: 1 }} />
+                      Book Appointment
+                    </MenuItem>
+                    {canPostJobs && (
+                      <MenuItem onClick={() => { handleClose(); navigate('/jobs'); }}>
+                        <WorkIcon sx={{ mr: 1 }} />
+                        Job Postings
+                      </MenuItem>
+                    )}
+                    {isAdmin && (
+                      <MenuItem onClick={() => { handleClose(); navigate('/admin'); }}>
+                        <AdminPanelSettingsIcon sx={{ mr: 1 }} />
+                        Admin Panel
+                      </MenuItem>
+                    )}
                     <MenuItem onClick={handleLogout}>
                       <LogoutIcon sx={{ mr: 1 }} />
                       Logout

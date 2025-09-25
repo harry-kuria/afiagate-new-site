@@ -26,10 +26,14 @@ import {
   Phone as PhoneIcon,
   AccessTime as TimeIcon,
   Emergency as EmergencyIcon,
+  ViewList as ListIcon,
+  Map as MapIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Facility } from '../types';
 import { connectApiService } from '../services/connectApi';
+import Map from '../components/Map/Map';
+import LocationPicker from '../components/Map/LocationPicker';
 
 const FacilitiesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +47,12 @@ const FacilitiesPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFacilities, setTotalFacilities] = useState(0);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   const facilityTypes = [
     'Hospital',
@@ -137,6 +147,25 @@ const FacilitiesPage: React.FC = () => {
     setPage(value);
   };
 
+  const handleLocationSelect = (location: any) => {
+    setSelectedLocation(location.position);
+    setLocation(location.name);
+    setLocationPickerOpen(false);
+  };
+
+  const getMapMarkers = () => {
+    return facilities.map(facility => ({
+      id: facility.id,
+      position: {
+        lat: facility.latitude || 6.5244,
+        lng: facility.longitude || 3.3792
+      },
+      title: facility.name,
+      info: `${facility.address}\n${facility.phone}`,
+      type: 'hospital' as const
+    }));
+  };
+
   const handleViewFacility = (facilityId: string) => {
     navigate(`/facilities/${facilityId}`);
   };
@@ -189,6 +218,22 @@ const FacilitiesPage: React.FC = () => {
         <Typography variant="h6" color="text.secondary">
           Find and book healthcare facilities near you
         </Typography>
+        <Box display="flex" justifyContent="center" gap={1} sx={{ mt: 3 }}>
+          <Button
+            variant={viewMode === 'list' ? 'contained' : 'outlined'}
+            startIcon={<ListIcon />}
+            onClick={() => setViewMode('list')}
+          >
+            List View
+          </Button>
+          <Button
+            variant={viewMode === 'map' ? 'contained' : 'outlined'}
+            startIcon={<MapIcon />}
+            onClick={() => setViewMode('map')}
+          >
+            Map View
+          </Button>
+        </Box>
       </Box>
 
       {/* Search and Filters */}
@@ -268,8 +313,19 @@ const FacilitiesPage: React.FC = () => {
         <LoadingSkeleton />
       ) : (
         <>
-          {/* Facilities Grid */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+          {/* Map View */}
+          {viewMode === 'map' ? (
+            <Box sx={{ mb: 4 }}>
+              <Map
+                center={selectedLocation || { lat: 6.5244, lng: 3.3792 }}
+                zoom={12}
+                markers={getMapMarkers()}
+                height="500px"
+              />
+            </Box>
+          ) : (
+            /* Facilities Grid */
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
             {filteredFacilities.map((facility) => (
               <Box key={facility.id} sx={{ flex: '1 1 350px', minWidth: 0 }}>
                 <Card
@@ -380,13 +436,14 @@ const FacilitiesPage: React.FC = () => {
                       onClick={() => handleViewFacility(facility.id)}
                       fullWidth
                     >
-                      View Details
+                      Contact the Hospital
                     </Button>
                   </CardActions>
                 </Card>
               </Box>
             ))}
           </Box>
+          )}
 
           {/* No Results */}
           {filteredFacilities.length === 0 && !loading && (
@@ -415,6 +472,14 @@ const FacilitiesPage: React.FC = () => {
           )}
         </>
       )}
+
+      {/* Location Picker Dialog */}
+      <LocationPicker
+        open={locationPickerOpen}
+        onClose={() => setLocationPickerOpen(false)}
+        onLocationSelect={handleLocationSelect}
+        currentLocation={selectedLocation || undefined}
+      />
     </Container>
   );
 };
