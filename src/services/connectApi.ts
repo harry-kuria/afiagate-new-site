@@ -333,10 +333,10 @@ class ConnectApiService {
     }>(`/users?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.data.map(transformUser),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformUser) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 
@@ -367,10 +367,10 @@ class ConnectApiService {
     }>(`/facilities?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.data.map(transformFacility),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformFacility) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 
@@ -442,10 +442,10 @@ class ConnectApiService {
     }>(`/appointments?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
     
     return {
-      data: response.data.map(transformAppointment),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformAppointment) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 
@@ -489,10 +489,10 @@ class ConnectApiService {
     }>(`/reviews?${queryParams}`, 'GET', undefined, true, 60000); // Cache for 1 minute
     
     return {
-      data: response.data.map(transformReview),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformReview) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 
@@ -524,10 +524,10 @@ class ConnectApiService {
     }>(`/education?${queryParams}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
     
     return {
-      data: response.data.map(transformEducation),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformEducation) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 
@@ -561,10 +561,10 @@ class ConnectApiService {
     }>(`/licensure?${queryParams}`, 'GET', undefined, true, 300000); // Cache for 5 minutes
     
     return {
-      data: response.data.map(transformLicensure),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformLicensure) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 
@@ -612,10 +612,10 @@ class ConnectApiService {
     }>(`/contact-requests?${queryParams}`, 'GET', undefined, true, 30000); // Cache for 30 seconds
     
     return {
-      data: response.data.map(transformContactRequest),
-      total: response.total,
-      page: response.page,
-      limit: response.limit
+      data: response.data ? response.data.map(transformContactRequest) : [],
+      total: response.total || 0,
+      page: response.page || 1,
+      limit: response.limit || 10
     };
   }
 }
