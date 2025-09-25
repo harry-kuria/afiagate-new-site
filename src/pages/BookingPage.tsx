@@ -9,15 +9,12 @@ import {
   Avatar,
   Chip,
   Rating,
-  Divider,
   Alert,
   CircularProgress,
-  Paper,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemAvatar,
 } from '@mui/material';
 import {
   Person,
@@ -26,9 +23,6 @@ import {
   LocationOn,
   Phone,
   Email,
-  Star,
-  CheckCircle,
-  AccessTime,
   Emergency,
   CalendarToday,
 } from '@mui/icons-material';
@@ -37,7 +31,7 @@ import { connectApiService } from '../services/connectApi';
 import EnhancedBookingForm from '../components/Booking/EnhancedBookingForm';
 
 const BookingPage: React.FC = () => {
-  const { user } = useAuth();
+  useAuth();
   const [providers, setProviders] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,18 +67,6 @@ const BookingPage: React.FC = () => {
     setBookingFormOpen(true);
   };
 
-  const getProviderIcon = (specialization: string) => {
-    switch (specialization?.toLowerCase()) {
-      case 'cardiology':
-        return <Emergency color="error" />;
-      case 'pediatrics':
-        return <Person color="primary" />;
-      case 'surgery':
-        return <LocalHospital color="secondary" />;
-      default:
-        return <Person color="action" />;
-    }
-  };
 
   const getAvailabilityStatus = (provider: any) => {
     if (provider.is_available) {

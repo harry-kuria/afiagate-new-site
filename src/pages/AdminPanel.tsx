@@ -5,7 +5,6 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
   Table,
   TableBody,
   TableCell,
@@ -30,7 +29,6 @@ import {
 import {
   CheckCircle,
   Cancel,
-  Visibility,
   PersonAdd,
   Work,
   Assessment,
@@ -61,7 +59,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const AdminPanel: React.FC = () => {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

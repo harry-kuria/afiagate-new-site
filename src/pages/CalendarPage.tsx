@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
   Box,
   Card,
-  CardContent,
   Button,
   Alert,
   CircularProgress,
@@ -15,8 +14,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -28,7 +25,6 @@ import {
   MenuItem,
 } from '@mui/material';
 import {
-  Add,
   CalendarToday,
   Schedule,
   Person,
@@ -36,7 +32,6 @@ import {
   CheckCircle,
   Cancel,
   Pending,
-  FilterList,
   Refresh,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
@@ -113,6 +108,7 @@ const CalendarPage: React.FC = () => {
   const [providers, setProviders] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isAuthenticated) {
       loadEvents();
@@ -232,11 +228,6 @@ const CalendarPage: React.FC = () => {
     setTabValue(newValue);
   };
 
-  const getEventsForDate = (date: Date) => {
-    return events.filter(event => 
-      event.date.toDateString() === date.toDateString()
-    );
-  };
 
   const getUpcomingEvents = () => {
     const today = new Date();

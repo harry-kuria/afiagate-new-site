@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -32,18 +32,12 @@ import {
   Add,
   CalendarToday,
   Schedule,
-  Person,
-  LocalHospital,
   Edit,
   Cancel,
   CheckCircle,
   Pending,
-  FilterList,
   Search,
   Refresh,
-  Phone,
-  Email,
-  LocationOn,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { connectApiService } from '../services/connectApi';
@@ -127,6 +121,7 @@ const AppointmentsPage: React.FC = () => {
   const [providers, setProviders] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isAuthenticated) {
       loadAppointments();
@@ -236,26 +231,6 @@ const AppointmentsPage: React.FC = () => {
       notes: appointment.notes || '',
     });
     setEditDialogOpen(true);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'confirmed': return 'success';
-      case 'completed': return 'info';
-      case 'cancelled': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return <Pending />;
-      case 'confirmed': return <CheckCircle />;
-      case 'completed': return <CheckCircle />;
-      case 'cancelled': return <Cancel />;
-      default: return <Schedule />;
-    }
   };
 
   const filteredAppointments = appointments.filter(appointment =>

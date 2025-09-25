@@ -5,7 +5,6 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
   Button,
   Chip,
   Alert,
@@ -15,12 +14,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Divider,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Paper,
   IconButton,
   Tooltip,
 } from '@mui/material';
@@ -31,8 +28,6 @@ import {
   Star,
   Emergency,
   LocalHospital,
-  Email,
-  Web,
   Directions,
   Share,
   Favorite,
@@ -84,6 +79,7 @@ const FacilityDetailPage: React.FC = () => {
     preferredContact: 'phone',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (id) {
       loadFacility();

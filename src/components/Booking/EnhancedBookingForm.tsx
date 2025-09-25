@@ -9,52 +9,32 @@ import {
   Select,
   MenuItem,
   FormControlLabel,
-  Checkbox,
   RadioGroup,
   Radio,
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   Card,
   CardContent,
   Alert,
-  Divider,
   Chip,
   Avatar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Paper,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   Person,
   LocalHospital,
-  Schedule,
-  LocationOn,
-  Phone,
-  Email,
   CalendarToday,
-  AccessTime,
-  Notes,
   CheckCircle,
   Warning,
-  Info,
-  Add,
-  Remove,
-  Edit,
-  Delete,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { connectApiService } from '../../services/connectApi';
-import { format, addDays, isAfter, isBefore } from 'date-fns';
+import { format } from 'date-fns';
 
 interface BookingFormData {
   // Patient Information
@@ -143,7 +123,6 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   const [providers, setProviders] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
   const [specialties, setSpecialties] = useState<string[]>([]);
-  const [availableSlots, setAvailableSlots] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

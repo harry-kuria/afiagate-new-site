@@ -11,16 +11,11 @@ import {
   Alert,
   CircularProgress,
   Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Divider
 } from '@mui/material';
 import {
   LocationOn,
   Search,
-  MyLocation,
   LocalHospital,
   LocalPharmacy,
   LocalHospital as LocalClinic

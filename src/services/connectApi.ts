@@ -176,22 +176,6 @@ function transformFacility(connectFacility: any) {
   };
 }
 
-// Transform Connect-RPC Appointment to match existing Appointment type
-function transformAppointment(connectAppointment: any) {
-  return {
-    id: connectAppointment.id,
-    patient_id: connectAppointment.patient_id || connectAppointment.patientId,
-    provider_id: connectAppointment.provider_id || connectAppointment.providerId,
-    facility_id: connectAppointment.facility_id || connectAppointment.facilityId,
-    service_id: connectAppointment.service_id || connectAppointment.serviceId,
-    appointment_date: connectAppointment.appointment_date || connectAppointment.appointmentDate,
-    appointment_time: connectAppointment.appointment_time || connectAppointment.appointmentTime,
-    notes: connectAppointment.notes,
-    status: connectAppointment.status?.toLowerCase() || 'pending',
-    created_at: connectAppointment.created_at || connectAppointment.createdAt,
-    updated_at: connectAppointment.updated_at || connectAppointment.updatedAt,
-  };
-}
 
 // Types from our temporary interface file
 interface User {
@@ -226,19 +210,6 @@ interface Facility {
   availableServices: any[];
 }
 
-interface Appointment {
-  id: string;
-  patientId: string;
-  providerId: string;
-  facilityId: string;
-  serviceId: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  status: string;
-  notes: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 class ConnectApiService {
   // Auth endpoints

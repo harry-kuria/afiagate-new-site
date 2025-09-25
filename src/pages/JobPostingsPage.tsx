@@ -29,7 +29,6 @@ import {
   FilterList,
   Work,
   LocationOn,
-  Schedule,
   AttachMoney,
   Edit,
   Delete,
@@ -87,6 +86,7 @@ const JobPostingsPage: React.FC = () => {
     application_url: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadJobPostings();
   }, []);
