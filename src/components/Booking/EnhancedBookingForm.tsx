@@ -225,12 +225,12 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   };
 
   const renderPatientInfo = () => (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
         Patient Information
       </Typography>
       
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 2, sm: 3 } }}>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
           <TextField
             fullWidth
@@ -238,6 +238,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             value={formData.patientName}
             onChange={(e) => handleInputChange('patientName', e.target.value)}
             required
+            size="small"
           />
         </Box>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -248,6 +249,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             value={formData.patientEmail}
             onChange={(e) => handleInputChange('patientEmail', e.target.value)}
             required
+            size="small"
           />
         </Box>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -257,6 +259,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             value={formData.patientPhone}
             onChange={(e) => handleInputChange('patientPhone', e.target.value)}
             required
+            size="small"
           />
         </Box>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -268,10 +271,11 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
             InputLabelProps={{ shrink: true }}
             required
+            size="small"
           />
         </Box>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>Gender</InputLabel>
             <Select
               value={formData.gender}
@@ -289,6 +293,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             label="Emergency Contact Name"
             value={formData.emergencyContact}
             onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+            size="small"
           />
         </Box>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -297,6 +302,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             label="Emergency Contact Phone"
             value={formData.emergencyPhone}
             onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+            size="small"
           />
         </Box>
         <Box sx={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -305,6 +311,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             label="Language Preference"
             value={formData.languagePreference}
             onChange={(e) => handleInputChange('languagePreference', e.target.value)}
+            size="small"
           />
         </Box>
       </Box>
@@ -653,16 +660,39 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        <Typography variant="h5">Book an Appointment</Typography>
-        <Typography variant="body2" color="text.secondary">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      fullScreen={window.innerWidth < 768}
+      sx={{
+        '& .MuiDialog-paper': {
+          m: { xs: 1, sm: 2 },
+          maxHeight: { xs: '100vh', sm: '90vh' }
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
+        <Typography variant="h5" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+          Book an Appointment
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
           Complete the form below to book your healthcare appointment
         </Typography>
       </DialogTitle>
       
-      <DialogContent>
-        <Stepper activeStep={activeStep} orientation="horizontal" sx={{ mb: 3 }}>
+      <DialogContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1, sm: 2 } }}>
+        <Stepper 
+          activeStep={activeStep} 
+          orientation={window.innerWidth < 768 ? "vertical" : "horizontal"} 
+          sx={{ 
+            mb: 3,
+            '& .MuiStepLabel-label': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }
+            }
+          }}
+        >
           {steps.map((label, index) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -679,17 +709,31 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
         {getStepContent(activeStep)}
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
-        <Button onClick={onClose}>
+      <DialogActions sx={{ 
+        p: { xs: 2, sm: 3 }, 
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: { xs: 1, sm: 0 }
+      }}>
+        <Button 
+          onClick={onClose}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
           Cancel
         </Button>
         {activeStep > 0 && (
-          <Button onClick={handleBack}>
+          <Button 
+            onClick={handleBack}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
             Back
           </Button>
         )}
         {activeStep < steps.length - 1 ? (
-          <Button onClick={handleNext} variant="contained">
+          <Button 
+            onClick={handleNext} 
+            variant="contained"
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
             Next
           </Button>
         ) : (
@@ -697,6 +741,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             onClick={handleSubmit}
             variant="contained"
             disabled={loading}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             {loading ? 'Booking...' : 'Book Appointment'}
           </Button>

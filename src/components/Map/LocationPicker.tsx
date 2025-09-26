@@ -205,23 +205,45 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      fullScreen={window.innerWidth < 768}
+      sx={{
+        '& .MuiDialog-paper': {
+          m: { xs: 1, sm: 2 },
+          maxHeight: { xs: '100vh', sm: '90vh' }
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" gap={1}>
           <LocationOn color="primary" />
-          <Typography variant="h6">Select Location</Typography>
+          <Typography variant="h6" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+            Select Location
+          </Typography>
         </Box>
       </DialogTitle>
       
-      <DialogContent>
+      <DialogContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1, sm: 2 } }}>
         <Box sx={{ mb: 2 }}>
-          <Box display="flex" gap={1} sx={{ mb: 2 }}>
+          <Box 
+            display="flex" 
+            gap={1} 
+            sx={{ 
+              mb: 2,
+              flexDirection: { xs: 'column', sm: 'row' }
+            }}
+          >
             <TextField
               fullWidth
               placeholder="Search for hospitals, clinics, pharmacies..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              size="small"
               InputProps={{
                 startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
               }}
@@ -231,6 +253,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
               onClick={handleSearch}
               disabled={loading}
               startIcon={loading ? <CircularProgress size={20} /> : <Search />}
+              sx={{ 
+                width: { xs: '100%', sm: 'auto' },
+                minWidth: { xs: 'auto', sm: 100 }
+              }}
             >
               Search
             </Button>
@@ -244,10 +270,27 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
           {searchResults.length > 0 && (
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                 Search Results ({searchResults.length})
               </Typography>
-              <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
+              <Box sx={{ 
+                maxHeight: { xs: 150, sm: 200 }, 
+                overflow: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                  borderRadius: '3px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#c1c1c1',
+                  borderRadius: '3px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#a8a8a8',
+                },
+              }}>
                 {searchResults.map((location) => (
                   <Box
                     key={location.id}
@@ -255,7 +298,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 1,
                       mb: 0.5,
                       cursor: 'pointer',
@@ -264,17 +307,28 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                       backgroundColor: selectedLocation?.id === location.id ? 'primary.light' : 'transparent',
                       '&:hover': {
                         backgroundColor: selectedLocation?.id === location.id ? 'primary.light' : 'action.hover'
-                      }
+                      },
+                      '&:active': {
+                        transform: 'scale(0.98)',
+                      },
                     }}
                   >
                     <Box sx={{ mr: 2 }}>
                       {getTypeIcon(location.type)}
                     </Box>
                     <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="body1" fontWeight="medium">
+                      <Typography 
+                        variant="body1" 
+                        fontWeight="medium"
+                        sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                      >
                         {location.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
                         {location.address}
                       </Typography>
                       {location.distance && (
@@ -283,7 +337,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                           label={`${location.distance.toFixed(1)} km away`}
                           color="primary"
                           variant="outlined"
-                          sx={{ mt: 0.5 }}
+                          sx={{ 
+                            mt: 0.5,
+                            fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                            height: { xs: 20, sm: 24 }
+                          }}
                         />
                       )}
                     </Box>
@@ -295,7 +353,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ height: '400px' }}>
+          <Box sx={{ height: { xs: '300px', sm: '400px' } }}>
             <Map
               center={mapCenter}
               zoom={13}
@@ -338,12 +396,22 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         </Box>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+      <DialogActions sx={{ 
+        p: { xs: 2, sm: 3 },
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: { xs: 1, sm: 0 }
+      }}>
+        <Button 
+          onClick={onClose}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          Cancel
+        </Button>
         <Button
           onClick={handleConfirmSelection}
           variant="contained"
           disabled={!selectedLocation}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Select Location
         </Button>

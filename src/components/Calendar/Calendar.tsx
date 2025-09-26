@@ -189,29 +189,61 @@ const Calendar: React.FC<CalendarProps> = ({
   return (
     <Box>
       {/* Calendar Header */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" component="h2">
+      <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 2,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Typography variant="h5" component="h2" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             {format(currentDate, 'MMMM yyyy')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton onClick={handlePreviousMonth}>
+            <IconButton 
+              onClick={handlePreviousMonth}
+              size="small"
+              sx={{ p: { xs: 0.5, sm: 1 } }}
+            >
               <ChevronLeft />
             </IconButton>
-            <IconButton onClick={handleToday}>
+            <IconButton 
+              onClick={handleToday}
+              size="small"
+              sx={{ p: { xs: 0.5, sm: 1 } }}
+            >
               <Today />
             </IconButton>
-            <IconButton onClick={handleNextMonth}>
+            <IconButton 
+              onClick={handleNextMonth}
+              size="small"
+              sx={{ p: { xs: 0.5, sm: 1 } }}
+            >
               <ChevronRight />
             </IconButton>
           </Box>
         </Box>
 
         {/* Calendar Grid */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(7, 1fr)', 
+          gap: { xs: 0.5, sm: 1 } 
+        }}>
           {/* Day Headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <Typography key={day} variant="subtitle2" align="center" sx={{ p: 1, fontWeight: 'bold' }}>
+            <Typography 
+              key={day} 
+              variant="subtitle2" 
+              align="center" 
+              sx={{ 
+                p: { xs: 0.5, sm: 1 }, 
+                fontWeight: 'bold',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }}
+            >
               {day}
             </Typography>
           ))}
@@ -228,8 +260,8 @@ const Calendar: React.FC<CalendarProps> = ({
               <Paper
                 key={index}
                 sx={{
-                  p: 1,
-                  minHeight: 100,
+                  p: { xs: 0.5, sm: 1 },
+                  minHeight: { xs: 60, sm: 80, md: 100 },
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   opacity: isCurrentMonth ? 1 : 0.3,
                   backgroundColor: isSelected ? 'primary.light' : isTodayDate ? 'secondary.light' : 'transparent',
@@ -237,6 +269,9 @@ const Calendar: React.FC<CalendarProps> = ({
                   borderColor: isTodayDate ? 'primary.main' : 'divider',
                   '&:hover': {
                     backgroundColor: isDisabled ? 'transparent' : 'action.hover',
+                  },
+                  '&:active': {
+                    transform: 'scale(0.98)',
                   },
                 }}
                 onClick={() => !isDisabled && handleDateClick(day)}
@@ -246,15 +281,22 @@ const Calendar: React.FC<CalendarProps> = ({
                   sx={{
                     fontWeight: isTodayDate ? 'bold' : 'normal',
                     color: isCurrentMonth ? 'text.primary' : 'text.secondary',
-                    mb: 1,
+                    mb: { xs: 0.5, sm: 1 },
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
                   }}
                 >
                   {format(day, 'd')}
                 </Typography>
 
                 {/* Events for this day */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  {dayEvents.slice(0, 3).map((event) => (
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: { xs: 0.25, sm: 0.5 },
+                  maxHeight: { xs: 40, sm: 60, md: 80 },
+                  overflow: 'hidden'
+                }}>
+                  {dayEvents.slice(0, window.innerWidth < 768 ? 2 : 3).map((event) => (
                     <Tooltip key={event.id} title={`${event.title} - ${event.time}`}>
                       <Chip
                         size="small"
@@ -265,13 +307,23 @@ const Calendar: React.FC<CalendarProps> = ({
                           e.stopPropagation();
                           handleEventClick(event);
                         }}
-                        sx={{ fontSize: '0.7rem', height: 20 }}
+                        sx={{ 
+                          fontSize: { xs: '0.6rem', sm: '0.7rem' }, 
+                          height: { xs: 16, sm: 20 },
+                          '& .MuiChip-label': {
+                            px: { xs: 0.5, sm: 1 }
+                          }
+                        }}
                       />
                     </Tooltip>
                   ))}
-                  {dayEvents.length > 3 && (
-                    <Typography variant="caption" color="text.secondary">
-                      +{dayEvents.length - 3} more
+                  {dayEvents.length > (window.innerWidth < 768 ? 2 : 3) && (
+                    <Typography 
+                      variant="caption" 
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}
+                    >
+                      +{dayEvents.length - (window.innerWidth < 768 ? 2 : 3)} more
                     </Typography>
                   )}
                 </Box>

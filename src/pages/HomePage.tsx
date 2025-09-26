@@ -98,7 +98,8 @@ const HomePage: React.FC = () => {
         sx={{
           background: 'white',
           color: 'text.primary',
-          py: { xs: 4, md: 8 },
+          py: { xs: 3, sm: 4, md: 8 },
+          px: { xs: 2, sm: 0 },
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -217,13 +218,13 @@ const HomePage: React.FC = () => {
           }}
         />
 
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, px: { xs: 2, sm: 3 } }}>
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', md: 'row' },
             flexWrap: 'wrap', 
             alignItems: 'center', 
-            gap: { xs: 3, md: 4 } 
+            gap: { xs: 2, sm: 3, md: 4 } 
           }}>
             <Box sx={{ 
               flex: { xs: '1 1 100%', md: '1 1 400px' }, 
@@ -252,8 +253,8 @@ const HomePage: React.FC = () => {
                 variant="h2"
                 sx={{
                   fontWeight: 700,
-                  mb: 3,
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
+                  mb: { xs: 2, md: 3 },
+                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3.5rem' },
                   color: 'text.primary',
                   animation: 'fadeInUp 0.8s ease-out 0.2s both',
                   '@keyframes fadeInUp': {
@@ -267,10 +268,10 @@ const HomePage: React.FC = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  mb: 4,
+                  mb: { xs: 3, md: 4 },
                   color: 'text.secondary',
                   lineHeight: 1.6,
-                  fontSize: { xs: '1rem', md: '1.25rem' },
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
                   animation: 'fadeInUp 0.8s ease-out 0.4s both',
                   '@keyframes fadeInUp': {
                     '0%': { opacity: 0, transform: 'translateY(40px)' },
@@ -288,10 +289,11 @@ const HomePage: React.FC = () => {
                 sx={{
                   backgroundColor: 'primary.main',
                   color: 'white',
-                  px: { xs: 3, md: 4 },
+                  px: { xs: 2, sm: 3, md: 4 },
                   py: { xs: 1, md: 1.5 },
-                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
                   fontWeight: 600,
+                  width: { xs: '100%', sm: 'auto' },
                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     backgroundColor: 'primary.dark',
@@ -308,7 +310,7 @@ const HomePage: React.FC = () => {
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'center', 
-              height: { xs: 300, md: 500 }, 
+              height: { xs: 250, sm: 300, md: 500 }, 
               position: 'relative',
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateX(0)' : 'translateX(30px)',
@@ -339,8 +341,8 @@ const HomePage: React.FC = () => {
                 src={doctorImage}
                 alt="Healthcare Professional"
                 sx={{
-                  maxWidth: { xs: '80%', md: '100%' },
-                  maxHeight: { xs: '80%', md: '100%' },
+                  maxWidth: { xs: '90%', sm: '85%', md: '100%' },
+                  maxHeight: { xs: '90%', sm: '85%', md: '100%' },
                   objectFit: 'contain',
                   filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1))',
                   position: 'relative',
@@ -358,16 +360,16 @@ const HomePage: React.FC = () => {
       </Box>
 
       {/* Service Highlights */}
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4, md: 8 }, px: { xs: 2, sm: 3 } }}>
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
           flexWrap: 'wrap', 
-          gap: { xs: 2, md: 3 } 
+          gap: { xs: 2, sm: 2, md: 3 } 
         }}>
           {serviceCards.map((card, index) => (
             <Box key={index} sx={{ 
-              flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 12px)', md: '1 1 250px' }, 
+              flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 8px)', md: '1 1 250px' }, 
               minWidth: 0,
               opacity: animateCards ? 1 : 0,
               transform: animateCards ? 'translateY(0)' : 'translateY(50px)',
@@ -387,9 +389,9 @@ const HomePage: React.FC = () => {
                   },
                 }}
               >
-                <CardContent sx={{ flexGrow: 1, textAlign: 'center', py: { xs: 3, md: 4 } }}>
+                <CardContent sx={{ flexGrow: 1, textAlign: 'center', py: { xs: 2, sm: 3, md: 4 } }}>
                   <Box sx={{ 
-                    mb: 2,
+                    mb: { xs: 1.5, md: 2 },
                     animation: 'pulse 2s ease-in-out infinite',
                     '@keyframes pulse': {
                       '0%, 100%': { transform: 'scale(1)' },
@@ -402,31 +404,33 @@ const HomePage: React.FC = () => {
                     fontWeight: 600, 
                     mb: 1, 
                     color: 'white',
-                    fontSize: { xs: '1.1rem', md: '1.25rem' }
+                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
                   }}>
                     {card.title}
                   </Typography>
                   <Typography variant="body2" sx={{ 
                     mb: 1, 
                     color: 'rgba(255, 255, 255, 0.8)',
-                    fontSize: { xs: '0.875rem', md: '1rem' }
+                    fontSize: { xs: '0.8rem', sm: '0.875rem', md: '1rem' }
                   }}>
                     {card.subtitle}
                   </Typography>
                   <Typography variant="caption" sx={{ 
                     color: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: { xs: '0.75rem', md: '0.875rem' }
+                    fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' }
                   }}>
                     {card.description}
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ justifyContent: 'center', pb: { xs: 2, md: 3 } }}>
+                <CardActions sx={{ justifyContent: 'center', pb: { xs: 1.5, sm: 2, md: 3 } }}>
                   <Button
                     variant="outlined"
                     sx={{
                       color: 'white',
                       borderColor: 'white',
-                      fontSize: { xs: '0.875rem', md: '1rem' },
+                      fontSize: { xs: '0.8rem', sm: '0.875rem', md: '1rem' },
+                      px: { xs: 1.5, sm: 2 },
+                      py: { xs: 0.5, sm: 0.75 },
                       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         borderColor: 'white',
