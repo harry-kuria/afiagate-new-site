@@ -743,7 +743,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
             disabled={loading}
             sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
-            {loading ? 'Booking...' : 'Book Appointment'}
+            {loading ? 'Booking...' : (user?.role === 'facility' ? 'Book Appointment' : 'Request Medic')}
           </Button>
         )}
       </DialogActions>

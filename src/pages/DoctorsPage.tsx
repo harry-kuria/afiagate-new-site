@@ -29,9 +29,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import { connectApiService } from '../services/connectApi';
+import { useAuth } from '../contexts/AuthContext';
 
 const DoctorsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [doctors, setDoctors] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -341,7 +343,7 @@ const DoctorsPage: React.FC = () => {
                       onClick={() => handleBookAppointment(doctor.id)}
                       fullWidth
                     >
-                      Book Appointment
+                      {user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}
                     </Button>
                   </CardActions>
                 </Card>

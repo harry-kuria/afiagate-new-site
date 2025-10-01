@@ -218,7 +218,7 @@ const ProfilePage: React.FC = () => {
                   startIcon={<CalendarToday />}
                   onClick={() => setContactDialogOpen(true)}
                 >
-                  Book Appointment
+                  {user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}
                 </Button>
               </Box>
             </Box>
@@ -458,7 +458,7 @@ const ProfilePage: React.FC = () => {
               native: true,
             }}
           >
-            <option value="appointment">Book Appointment</option>
+            <option value="appointment">{user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}</option>
             <option value="phone">Phone Call</option>
             <option value="email">Email</option>
           </TextField>

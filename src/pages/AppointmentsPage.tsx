@@ -516,7 +516,7 @@ const AppointmentsPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleCreateAppointment}>
-            Book Appointment
+            {user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}
           </Button>
         </DialogActions>
       </Dialog>

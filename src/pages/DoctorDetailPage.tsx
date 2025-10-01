@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { connectApiService } from '../services/connectApi';
+import { useAuth } from '../contexts/AuthContext';
 import { User, Review, Education, Licensure } from '../types';
 
 interface TabPanelProps {
@@ -66,6 +67,7 @@ function TabPanel(props: TabPanelProps) {
 
 const DoctorDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [doctor, setDoctor] = useState<User | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [education, setEducation] = useState<Education[]>([]);
@@ -218,7 +220,7 @@ const DoctorDetailPage: React.FC = () => {
                   startIcon={<CalendarToday />}
                   onClick={() => setContactDialogOpen(true)}
                 >
-                  Book Appointment
+                  {user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}
                 </Button>
               </Box>
             </Box>
@@ -458,7 +460,7 @@ const DoctorDetailPage: React.FC = () => {
               native: true,
             }}
           >
-            <option value="appointment">Book Appointment</option>
+            <option value="appointment">{user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}</option>
             <option value="phone">Phone Call</option>
             <option value="email">Email</option>
           </TextField>

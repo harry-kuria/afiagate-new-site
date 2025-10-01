@@ -31,7 +31,7 @@ import { connectApiService } from '../services/connectApi';
 import EnhancedBookingForm from '../components/Booking/EnhancedBookingForm';
 
 const BookingPage: React.FC = () => {
-  useAuth();
+  const { user } = useAuth();
   const [providers, setProviders] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -223,7 +223,7 @@ const BookingPage: React.FC = () => {
                     disabled={!provider.is_available}
                     startIcon={<CalendarToday />}
                   >
-                    {provider.is_available ? 'Book Appointment' : 'Not Available'}
+                    {provider.is_available ? (user?.role === 'facility' ? 'Book Appointment' : 'Request Medic') : 'Not Available'}
                   </Button>
                 </Box>
               </Card>

@@ -227,7 +227,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </MenuItem>
                     <MenuItem onClick={() => { handleClose(); navigate('/booking'); }}>
                       <BookingIcon sx={{ mr: 1 }} />
-                      Book Appointment
+                      {user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'}
                     </MenuItem>
                     {canPostJobs && (
                       <MenuItem onClick={() => { handleClose(); navigate('/jobs'); }}>
@@ -391,7 +391,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <ListItemIcon>
                   <BookingIcon />
                 </ListItemIcon>
-                <ListItemText primary="Book Appointment" />
+                <ListItemText primary={user?.role === 'facility' ? 'Book Appointment' : 'Request Medic'} />
               </ListItem>
               
               {canPostJobs && (
