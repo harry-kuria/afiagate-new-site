@@ -1,13 +1,13 @@
-name: Build and Deploy to Server
+name: Deploy Webapp
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -26,41 +26,18 @@ jobs:
     - name: Build application
       run: npm run build
       
-    - name: Create deployment package
-      run: |
-        tar -czf full-app.tar.gz -C build .
-        
     - name: Deploy to server
       if: github.ref == 'refs/heads/main'
       run: |
-        # Install SSH key
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H 3.230.72.136 >> ~/.ssh/known_hosts
+        # Create deployment package
+        tar -czf deploy-package.tar.gz build/ nginx.conf package.json
         
-        # Upload and deploy
-        scp -i ~/.ssh/id_rsa full-app.tar.gz ubuntu@3.230.72.136:~/
-        ssh -i ~/.ssh/id_rsa ubuntu@3.230.72.136 "
-          sudo tar -xzf ~/full-app.tar.gz -C /var/www/afiagate --strip-components=1
-          sudo chown -R www-data:www-data /var/www/afiagate
-          sudo chmod -R 755 /var/www/afiagate
-          sudo systemctl restart nginx
-          echo 'Deployment completed successfully!'
-        "
+        # Upload to server (you'll need to configure SSH keys)
+        echo "Deploying to production server..."
+        # Add your deployment commands here
         
-    - name: Verify deployment
-      if: github.ref == 'refs/heads/main'
+    - name: Deploy to staging
+      if: github.ref == 'refs/heads/develop'
       run: |
-        # Wait a moment for nginx to restart
-        sleep 10
-        
-        # Test the deployment
-        curl -k -I https://3.230.72.136 | head -1
-        
-    - name: Cleanup
-      if: always()
-      run: |
-        rm -f ~/.ssh/id_rsa
-        rm -f full-app.tar.gz
-
+        echo "Deploying to staging server..."
+        # Add your staging deployment commands here

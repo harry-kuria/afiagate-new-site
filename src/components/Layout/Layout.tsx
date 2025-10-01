@@ -31,6 +31,7 @@ import {
   BookOnline as BookingIcon,
   Menu as MenuIcon,
   Close as CloseIcon,
+  GetApp as DownloadIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -162,6 +163,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Button>
               </Box>
             )}
+
+            {/* Download App Button */}
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<DownloadIcon />}
+              onClick={() => window.open('https://afiagate-ota-updates.s3.amazonaws.com/apks/production/afiagate-latest.apk', '_blank')}
+              sx={{ 
+                fontWeight: 500,
+                fontSize: { xs: '0.875rem', md: '1rem' },
+                px: { xs: 1, md: 2 },
+                mr: { xs: 1, md: 2 }
+              }}
+            >
+              Download App
+            </Button>
 
             {/* Auth Section */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
@@ -409,6 +426,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <>
             <Divider sx={{ my: 2 }} />
             <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<DownloadIcon />}
+                onClick={() => window.open('https://afiagate-ota-updates.s3.amazonaws.com/apks/production/afiagate-latest.apk', '_blank')}
+              >
+                Download App
+              </Button>
               <Button
                 variant="outlined"
                 fullWidth
